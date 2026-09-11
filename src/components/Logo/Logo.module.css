@@ -1,0 +1,9 @@
+.logo { display: flex; align-items: center; gap: 15px; user-select: none; width: fit-content; }
+.icon { display: block; width: 64px; height: 64px; }
+.text { display: flex; font-weight: 800; font-size: 36px; line-height: 1; letter-spacing: -.045em; }
+.suffix { color: #ff6500; }
+.lg .icon { width: clamp(62px, 5vw, 84px); height: clamp(62px, 5vw, 84px); }
+.lg .text { font-size: clamp(30px, 2.6vw, 45px); }
+.sm .icon { width: 36px; height: 36px; }
+.sm .text { font-size: 24px; }
+
