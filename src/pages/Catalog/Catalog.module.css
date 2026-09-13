@@ -40,7 +40,7 @@
 .search input::placeholder { color: #a1a395; }
 .search button { border: 0; background: transparent; color: #85877e; }
 .search kbd { border: 1px solid #e3e4da; border-radius: 4px; padding: 1px 5px; font-family: inherit; font-size: 10px; }
-.account { display: flex; align-items: center; gap: 9px; text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.account { display: flex; align-items: center; gap: 9px; border: 0; background: transparent; color: inherit; text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .account svg { color: #878a7f; font-size: 13px; }
 .bag { display: flex; align-items: center; gap: 9px; height: 42px; background: #ffda00; padding: 0 14px; border: 0; border-radius: 10px; font-weight: 600; font-size: 12px; }
 .bag b { display: grid; place-items: center; min-width: 21px; height: 21px; background: #ffffff7a; border-radius: 6px; font-size: 10px; }
@@ -53,6 +53,7 @@
 .heroViewport { overflow: hidden; }
 .heroTrack { display: flex; touch-action: pan-y pinch-zoom; }
 .heroSlide { flex: 0 0 100%; min-width: 0; }
+.mobileHeroBanner { display: block; width: 100%; height: auto; object-fit: contain; user-select: none; }
 .hero { display: grid; grid-template-columns: 52% 48%; overflow: hidden; position: relative; min-height: 260px; }
 .yellow { background: #ffda00; }
 .green { background: #214b39; color: #fffbea; }
@@ -106,14 +107,14 @@
 .filterButton { display: flex; align-items: center; gap: 9px; background: #efefeb; border: 0; border-radius: 8px; padding: 10px 14px; font-size: 11px; }
 .filterButton b { color: inherit; }
 .filterActive { background: #242424; color: #fff; }
-.filterRow { display: flex; align-items: center; gap: 8px; margin: 19px 0; }
-.filterRow > button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 6px; padding: 8px 12px; background: #efefeb; font-size: 12px; line-height: 1; color: #242424; }
+.filterRow { display: flex; align-items: center; gap: 10px; margin: 19px 0; }
+.filterRow > button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; border: 0; border-radius: 13px; padding: 0 15px; background: #efefeb; font-size: 12px; font-weight: 650; letter-spacing: -.12px; line-height: 1; color: #242424; transition: background-color .2s ease, color .2s ease; }
 .filterRow > button:first-child { background: #242424; color: #fff; }
 .filterRow > button:nth-child(2) { background: #ffda00; color: #242424; }
-.filterRow > button:nth-child(2) svg { color: #fff; margin-right: 6px; filter: drop-shadow(0 1px 0 #bd8e00); }
+.filterRow > button:nth-child(2) svg { color: #fff; margin: 0; filter: none; transform: rotate(-5deg); }
 .filterRow > button:first-child.chipActive { background: #ffda00; color: #242424; }
 .filterRow > button:nth-child(2).chipActive { background: #242424; color: #fff; }
-.filterRow > button:nth-child(2).chipActive svg { color: #ffda00; filter: none; }
+.filterRow > button:nth-child(2).chipActive svg { color: #ffda00; }
 .sortControl { display: flex; align-items: center; gap: 7px; margin-left: auto; color: #767676; font-size: 12px; }
 .sortTrigger { display: inline-flex; align-items: center; gap: 8px; background: transparent; border: 0; color: #424242; font-size: 12px; font-weight: 600; cursor: pointer; padding: 7px; }
 .sortTrigger svg { width: 12px; }
@@ -122,11 +123,6 @@
 .sortItem[data-highlighted] { background: #ffda00; }
 .sortItem svg { width: 13px; }
 @keyframes menuIn { from { opacity: 0; transform: translateY(-5px) scale(.98); } }
-.filterPanel { display: flex; flex-wrap: wrap; gap: 15px; background: #f0f0ec; padding: 18px; border-radius: 10px; font-size: 12px; margin-bottom: 18px; }
-.filterPanel p { width: 100%; color: #747666; }
-.filterPanel label { display: flex; align-items: center; gap: 7px; }
-.filterPanel input { accent-color: #242424; }
-.filterPanel button { margin-left: auto; background: transparent; border: 0; text-decoration: underline; font-size: 12px; }
 .productGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; gap: 28px 22px; }
 .productViewport { min-width: 0; }
 .card { height: 100%; border: 0; border-radius: 0; background: #fff; overflow: visible; }
@@ -352,7 +348,9 @@
 .checkoutSummary .checkoutTotal strong { font-size: 20px; }
 .cartEta { display: flex; align-items: center; gap: 7px; margin: 15px 0 19px; color: #777; font-size: 10px; line-height: 1.4; }
 .cartEta svg { width: 12px; height: 12px; flex: 0 0 12px; color: #e2b400; }
-.checkoutButton { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 54px; padding: 0 19px; border-radius: 14px; background: #ffda00; color: #242424; font-size: 13px; font-weight: 700; text-decoration: none; }
+.checkoutButton { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: 100%; min-height: 54px; padding: 0 19px; border: 0; border-radius: 14px; background: #ffda00; color: #242424; font-family: inherit; font-size: 13px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background-color .18s ease; }
+.checkoutButton:hover { background: #f3ce00; }
+.checkoutButton:active { background: #e9c500; }
 .checkoutButton strong { font-family: var(--font-display); font-size: 15px; }
 .cartEmpty { display: flex; min-height: calc(100svh - 64px); flex-direction: column; align-items: center; justify-content: center; padding: 44px 16px; text-align: center; }
 .cartIllustration { display: block; width: 138px; height: 138px; object-fit: contain; }
@@ -374,7 +372,8 @@
 .profileHero h2 { margin: 0 0 5px; font-size: 22px; }
 .profileHero p { color: #777b6c; font-size: 12px; line-height: 1.5; }
 .profileAuth { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0 20px; }
-.profileAuth a { display: grid; place-items: center; min-height: 44px; border-radius: 9px; font-size: 13px; font-weight: 700; text-decoration: none; }
+.profileAuth a, .profileAuth button { display: grid; place-items: center; min-height: 44px; border: 0; border-radius: 9px; font-size: 13px; font-weight: 700; text-decoration: none; }
+.profileAuthSigned { grid-template-columns: 1fr; }
 .profilePrimary { background: #242424; color: #fff; }
 .profileSecondary { background: #ffda00; color: #242424; }
 .profileList { display: grid; gap: 8px; }
@@ -397,7 +396,7 @@
 .ordersActions a { background: #ffda00; color: #242424; }
 .ordersActions button { background: #242424; color: #fff; }
 .ordersActions svg { width: 12px; }
-.filterBolt { display: block; width: 12px; height: 12px; }
+.filterBolt { display: block; width: 11px; height: 13px; flex: 0 0 11px; }
 .toast { position: fixed; z-index: 100; bottom: 25px; left: 50%; transform: translateX(-50%); pointer-events: none; width: max-content; max-width: calc(100vw - 32px); }
 .toast > span { display: flex; align-items: center; gap: 12px; background: #303d29; color: #fff; padding: 15px 21px; border-radius: 11px; box-shadow: 0 5px 20px #1e271c20; font-size: 12px; }
 .iconButton { border: 0; background: #f6f6ee; border-radius: 9px; width: 36px; height: 36px; }
@@ -507,14 +506,11 @@
   .sectionHeading p { font-size: 11px; margin-top: 4px; }
   .filterButton { min-height: 40px; padding: 8px 13px; background: #242424; color: #fff; border: 0; border-radius: 20px; font-size: 11px; }
   .filterButton.filterActive { background: #ffda00; color: #242424; }
-  .filterRow { flex-wrap: wrap; gap: 8px; margin: 14px 0 16px; }
-  .filterRow > button { min-height: 38px; padding: 8px 14px; font-size: 11px; border: 0; border-radius: 19px; }
-  .sortControl { display: none; width: 100%; justify-content: flex-end; font-size: 11px; }
+  .filterRow { flex-wrap: wrap; gap: 9px; margin: 14px 0 16px; }
+  .filterRow > button { min-height: 40px; padding: 0 15px; font-size: 11px; border: 0; border-radius: 13px; }
+  .sortControl { display: none; width: 100%; justify-content: space-between; margin: 1px 0 0; padding: 4px 2px 0; font-size: 11px; }
   .filtersExpanded .sortControl { display: flex; }
-  .sortTrigger { min-height: 34px; font-size: 12px; }
-  .filterPanel { background: #efede7; padding: 16px; }
-  .filterPanel label { min-height: 32px; }
-  .filterPanel input { width: 18px; height: 18px; }
+  .sortTrigger { min-height: 34px; padding-right: 0; font-size: 12px; }
   .productViewport { overflow: hidden; margin: 0 -18px; cursor: grab; }
   .productViewport:active { cursor: grabbing; }
   .productGrid { display: flex; align-items: stretch; gap: 12px; width: max-content; min-width: 100%; margin: 0; padding: 0 28px 16px 18px; touch-action: pan-y pinch-zoom; }
@@ -568,13 +564,15 @@
   .footer p { order: 3; width: 100%; margin-left: 0; line-height: 1.6; }
   .footer button { min-height: 40px; margin-left: auto; align-items: center; }
   .bottomNav { position: fixed; bottom: 12px; left: 16px; right: 16px; z-index: 25; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; background: #fff; border: 0; border-radius: 28px; padding: 10px 8px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 8px 28px #00000020; }
-  .bottomNav > button, .bottomNav > a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 48px; border: 0; background: transparent; text-decoration: none; color: #817b72; font-size: 10px; font-weight: 500; padding: 0 2px; }
-  .bottomNav > button > svg, .bottomNav > a > svg { width: 19px; height: 19px; }
+  .bottomNav > button, .bottomNav > a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; height: 48px; border: 0; background: transparent; text-decoration: none; color: #817b72; font-size: 10px; font-weight: 500; padding: 0 2px; -webkit-tap-highlight-color: transparent; transition: color .2s ease, font-weight .2s ease; }
+  .navIconShell { position: relative; display: grid; place-items: center; width: 32px; height: 30px; border-radius: 11px; transition: background-color .2s ease, border-radius .2s ease, color .2s ease; }
+  .navGlyph { grid-area: 1 / 1; display: grid; place-items: center; width: 21px; height: 21px; pointer-events: none; }
+  .navGlyph > svg { width: 19px; height: 19px; }
   .bottomNav > button:focus-visible, .bottomNav > a:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px #242424; border-radius: 10px; }
   .bottomNav .bottomActive { color: #242424; font-weight: 700; }
-  .bottomNav .bottomActive:not(.ordersTab)::after { content: ''; position: absolute; bottom: -5px; width: 4px; height: 4px; border-radius: 50%; background: #ffda00; }
   .bottomNav .ordersTab { position: relative; overflow: visible; }
-  .ordersIcon { display: grid; place-items: center; height: 46px; width: 46px; min-height: 46px; border-radius: 50%; background: #ffda00; color: #242424; box-shadow: 0 0 0 5px #fff; font-size: 18px; }
+  .ordersIcon { height: 46px; width: 46px; min-height: 46px; border-radius: 50%; background: #ffda00; color: #242424; box-shadow: 0 0 0 5px #fff; }
+  .ordersIcon .navGlyph > svg { width: 18px; height: 18px; }
   .ordersTab.bottomActive .ordersIcon { background: #242424; color: #ffda00; }
   .toast { bottom: calc(91px + env(safe-area-inset-bottom)); }
   .toast > span { font-size: 12px; padding: 13px 16px; }
@@ -625,7 +623,7 @@
   .profileAvatar { flex-basis: 48px; width: 48px; height: 48px; }
   .profileHero h2 { font-size: 20px; }
   .profileHero p { font-size: 12px; }
-  .profileAuth a { min-height: 46px; font-size: 14px; }
+  .profileAuth a, .profileAuth button { min-height: 46px; font-size: 14px; }
   .profileList > button { min-height: 54px; font-size: 14px; }
   .empty { background: #efede7; padding: 45px 18px; border: 0; }
 }

@@ -1,4 +1,6 @@
 import styles from './Button.module.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleCheck, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 
 /**
  * Botão reutilizável com suporte a variantes e estado de carregamento
@@ -11,6 +13,8 @@ export function Button({
   children,
   variant = 'primary',
   loading = false,
+  loadingLabel = 'Carregando',
+  success = false,
   fullWidth = false,
   disabled,
   className = '',
@@ -33,7 +37,10 @@ export function Button({
       {...props}
     >
       {loading ? (
-        <span className={styles.spinner} aria-label="Carregando..." />
+        <span className={styles.loadingContent} role="status" aria-live="polite">
+          <FontAwesomeIcon className={success ? styles.successIcon : styles.spinner} icon={success ? faCircleCheck : faCircleNotch} aria-hidden="true" />
+          <span>{loadingLabel}</span>
+        </span>
       ) : (
         children
       )}

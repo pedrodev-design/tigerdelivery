@@ -11,7 +11,7 @@ function App() {
     window.addEventListener('hashchange', onNavigate)
     return () => window.removeEventListener('hashchange', onNavigate)
   }, [])
-  const isAuth = ['#entrar', '#criar-conta', '#recuperar-senha'].includes(hash)
+  const isAuth = ['#entrar', '#criar-conta', '#recuperar-senha', '#verificar-email'].includes(hash)
   return (
     <div className="app">
       <AnimatePresence mode="wait" initial={false}>

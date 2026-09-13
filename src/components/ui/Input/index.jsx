@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
+import { faCircleCheck, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import styles from './Input.module.css'
 
 /**
@@ -16,6 +16,7 @@ export function Input({
   hideLabel = false,
   error,
   hint,
+  valid = false,
   icon,
   type = 'text',
   id,
@@ -34,7 +35,7 @@ export function Input({
         </label>
       )}
 
-      <div className={`${styles.inputWrapper} ${error ? styles.hasError : ''}`}>
+      <div className={`${styles.inputWrapper} ${error ? styles.hasError : ''} ${valid ? styles.isValid : ''}`}>
         {icon && <span className={styles.icon} aria-hidden="true">{icon}</span>}
 
         <input
@@ -45,6 +46,8 @@ export function Input({
           aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
           {...props}
         />
+
+        {valid && <span className={styles.validIcon} aria-label="Campo preenchido corretamente"><FontAwesomeIcon icon={faCircleCheck} aria-hidden="true" /></span>}
 
         {isPassword && (
           <button

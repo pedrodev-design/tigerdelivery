@@ -6,6 +6,7 @@
 .inputWrapper:focus-within { background: #fff; border-color: #877128; box-shadow: 0 0 0 3px #fff9d780; }
 .inputWrapper.hasError { border-color: #b7432b; }
 .inputWrapper.hasError:focus-within { box-shadow: 0 0 0 3px #b7432b18; }
+.inputWrapper.isValid { background: #fffef8; }
 .icon { display: flex; align-items: center; margin: 0 16px 0 18px; color: #878477; transition: color .18s; }
 .icon svg { width: 18px; height: 18px; }
 .inputWrapper:focus-within .icon { color: #786426; }
@@ -17,7 +18,11 @@
 .eyeBtn svg { width: 18px; height: 18px; }
 .eyeBtn:hover { color: #514621; background: #f5f1e6; }
 .eyeBtn:focus-visible { outline-offset: -3px; }
-.error { font-size: 12px; line-height: 1.4; color: #8b2e1b; padding-left: 2px; }
+.validIcon { display: flex; align-items: center; justify-content: center; width: 32px; color: #208c51; flex-shrink: 0; animation: confirmIn .2s ease-out; }
+.validIcon svg { width: 16px; height: 16px; }
+.error { font-size: 12px; line-height: 1.4; color: #8b2e1b; padding-left: 2px; animation: messageIn .18s ease-out; }
 .hint { font-size: 12px; line-height: 1.4; color: #6c5a23; padding-left: 2px; }
+@keyframes confirmIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes messageIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 700px) { .input { font-size: 16px; } }
 

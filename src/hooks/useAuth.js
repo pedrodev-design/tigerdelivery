@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { validateLoginForm } from '../utils/validators'
+import { getAuthMessage, isSupabaseConfigured, supabase } from '../lib/supabase'
 
 /**
  * Hook de autenticação — gerencia estado e lógica do login
@@ -26,29 +27,16 @@ export function useAuth() {
     setLoading(true)
 
     try {
-      // TODO: Substituir pela chamada real à API
-      await fakeLoginRequest({ email, password })
-      // Sucesso: redirecionar ou salvar token
-      console.log('Login realizado com sucesso!')
+      if (!isSupabaseConfigured) throw new Error('Supabase não configurado')
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) throw error
+      return data
     } catch (err) {
-      setServerError(err.message || 'Erro ao fazer login. Tente novamente.')
+      setServerError(isSupabaseConfigured ? getAuthMessage(err) : 'A conexão com o Supabase ainda precisa das chaves do projeto.')
     } finally {
       setLoading(false)
     }
   }
 
   return { login, loading, errors, serverError }
-}
-
-// ─── Simulação de requisição ──────────────────────────────────────────────────
-function fakeLoginRequest({ email, password }) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (email === 'admin@delivery.com' && password === '123456') {
-        resolve({ token: 'fake-jwt-token' })
-      } else {
-        reject(new Error('E-mail ou senha incorretos'))
-      }
-    }, 1500)
-  })
 }
