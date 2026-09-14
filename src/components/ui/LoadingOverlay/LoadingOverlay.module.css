@@ -1,0 +1,6 @@
+.overlay { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgb(24 24 18 / 48%); backdrop-filter: blur(3px); }
+.card { display: flex; width: min(100%, 250px); flex-direction: column; align-items: center; padding: 26px 24px 23px; border-radius: 20px; background: #fffdf7; color: #20211d; box-shadow: 0 20px 70px rgb(0 0 0 / 18%); text-align: center; }
+.icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #ffda00; color: #20211d; font-size: 20px; }
+.card strong { margin-top: 16px; font-family: var(--font-display); font-size: 17px; letter-spacing: -.02em; }
+.card p { margin-top: 5px; color: #777970; font-size: 11px; line-height: 1.45; }
+@media (prefers-reduced-motion: reduce) { .icon svg { animation-duration: 1.4s; } }

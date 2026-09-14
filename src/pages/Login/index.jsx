@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft as ArrowLeft,
   faArrowRight as ArrowRight,
   faCircleInfo as Info,
   faEnvelope as EnvelopeSimple,
+  faIdCard as IdCard,
   faLock as Lock,
   faUser as User,
 } from '@fortawesome/free-solid-svg-icons'
 import { Button } from '../../components/ui/Button'
+import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
 import { Input } from '../../components/ui/Input'
-import { validateAuthForm } from '../../utils/validators'
+import { formatCpf, validateAuthForm } from '../../utils/validators'
 import { getAuthMessage, isSupabaseConfigured, supabase } from '../../lib/supabase'
 import loginImage from '../../assets/images/img-login.png'
 import styles from './Login.module.css'
@@ -38,7 +41,7 @@ function GoogleIcon() {
 
 export function LoginPage() {
   const [mode, setMode] = useState(readMode)
-  const [values, setValues] = useState({ name: '', email: '', password: '', confirmPassword: '' })
+  const [values, setValues] = useState({ name: '', cpf: '', email: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
@@ -95,7 +98,7 @@ export function LoginPage() {
   }, [verify, pendingSignup?.email])
 
   function update(field, value) {
-    const next = { ...values, [field]: value }
+    const next = { ...values, [field]: field === 'cpf' ? formatCpf(value) : value }
     setValues(next)
     setNotice('')
     setErrors(previous => {
@@ -139,7 +142,7 @@ export function LoginPage() {
   async function submit(event) {
     event.preventDefault()
     const nextErrors = validateAuthForm(mode, values)
-    const required = recover ? ['email'] : register ? ['name', 'email', 'password', 'confirmPassword'] : ['email', 'password']
+    const required = recover ? ['email'] : register ? ['name', 'cpf', 'email', 'password', 'confirmPassword'] : ['email', 'password']
     setTouched(Object.fromEntries(required.map(field => [field, true])))
     setErrors(nextErrors)
     setNotice('')
@@ -168,7 +171,7 @@ export function LoginPage() {
           email: values.email.trim(),
           password: values.password,
           options: {
-            data: { full_name: values.name.trim() },
+            data: { full_name: values.name.trim(), cpf: values.cpf.replace(/\D/g, '') },
             emailRedirectTo: `${window.location.origin}/#catalogo`,
           },
         })
@@ -284,7 +287,7 @@ export function LoginPage() {
     setNotice('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/#catalogo` },
+      options: { redirectTo: `${window.location.origin}/` },
     })
     if (error) {
       setNotice(getAuthMessage(error))
@@ -300,6 +303,7 @@ export function LoginPage() {
       onChange={event => update(name, event.target.value)} onBlur={() => blurField(name, type)} valid={valid}
       onKeyUp={type === 'password' ? event => setCapsLock(event.getModifierState('CapsLock')) : undefined}
       onKeyDown={type === 'password' ? event => setCapsLock(event.getModifierState('CapsLock')) : undefined}
+      inputMode={name === 'cpf' ? 'numeric' : undefined} maxLength={name === 'cpf' ? 14 : undefined}
       error={errors[name]} hint={hint} spellCheck={false} autoCapitalize={name === 'name' ? 'words' : 'none'} required />
   }
 
@@ -347,6 +351,7 @@ export function LoginPage() {
             </div>
           </form> : <form className={styles.form} onSubmit={submit} noValidate>
             {register && field('name', 'Seu nome', 'text', 'Como você gostaria de ser chamado?', User, 'name')}
+            {register && field('cpf', 'CPF', 'text', '000.000.000-00', IdCard, 'off', 'Seu CPF fica protegido e não aparece no catálogo.')}
             {field('email', 'E-mail', 'email', 'voce@email.com', EnvelopeSimple, 'email')}
             {!recover && field('password', 'Senha', 'password', register ? 'Crie uma senha' : 'Digite sua senha', Lock, register ? 'new-password' : 'current-password', register ? 'Use pelo menos 8 caracteres.' : undefined)}
             {register && field('confirmPassword', 'Confirme sua senha', 'password', 'Repita a senha', Lock, 'new-password')}
@@ -368,6 +373,7 @@ export function LoginPage() {
           {!verify && <a className={styles.explore} href="#catalogo">Só quero dar uma olhada no cardápio <Icon icon={ArrowRight} /></a>}
         </div>
       </section>
+      <AnimatePresence>{loading && <LoadingOverlay label={verify ? 'Quase lá' : 'Só um instante'} detail={verify ? 'Conferindo seu código com segurança.' : 'Estamos cuidando do seu acesso.'} />}</AnimatePresence>
     </main>
   )
 }
