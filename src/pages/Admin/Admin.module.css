@@ -84,6 +84,11 @@
 .identityReview small { margin-top: 3px; color: #79745b; font-size: 9px; }
 .identityReview b { color: #8b7600; font-size: 9px; white-space: nowrap; }
 .identityReview b[data-status="verified"] { color: #24783b; }
+.identityActions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+.identityActions button { min-height: 31px; padding: 0 10px; border: 0; border-radius: 9px; background: #20211d; color: #fff; font: inherit; font-size: 9px; font-weight: 800; cursor: pointer; }
+.identityActions .identityApprove { background: #ffda00; color: #20211d; }
+.identityActions .identityReject { background: #f1e8e4; color: #963d29; }
+.identityActions button:disabled { cursor: wait; opacity: .55; }
 .notes { display: block; margin-top: 24px; }
 .notes > span { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; }
 .notes textarea { width: 100%; min-height: 110px; resize: vertical; padding: 13px; border: 0; border-radius: 14px; outline: 2px solid transparent; background: #f2f2ee; font: inherit; font-size: 12px; line-height: 1.5; }

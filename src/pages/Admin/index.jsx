@@ -53,7 +53,7 @@ function AccessState({ account }) {
   </div></main>
 }
 
-function ReviewPanel({ application, onClose, onReview, saving }) {
+function ReviewPanel({ application, onClose, onReview, onIdentityReview, onOpenSelfie, saving }) {
   const [notes, setNotes] = useState(application.review_notes || '')
   const profile = application.profiles || {}
   const vehicle = vehicleInfo[application.vehicle_type] || vehicleInfo.motorcycle
@@ -74,6 +74,7 @@ function ReviewPanel({ application, onClose, onReview, saving }) {
           <div><dt><Icon icon={vehicle.icon} />Veículo</dt><dd>{vehicle.label}{application.vehicle_plate ? ` · ${application.vehicle_plate}` : ''}</dd></div>
         </dl>
         <div className={styles.identityReview}><span><Icon icon={faShieldHalved} /></span><div><strong>Verificação de identidade</strong><small>{application.identity?.status === 'verified' ? 'Documento e selfie conferidos' : application.identity?.status === 'pending' ? 'Aguardando conferência automática' : application.identity?.status === 'unverified' ? 'Não conferida — solicite nova captura' : 'Ainda não iniciada'}</small></div><b data-status={application.identity?.status || 'not_started'}>{application.identity?.status === 'verified' ? 'Conferida' : application.identity?.status === 'pending' ? 'Em análise' : 'Pendente'}</b></div>
+        {application.identity?.selfie_path && <div className={styles.identityActions}><button type="button" onClick={() => onOpenSelfie(application.identity.selfie_path)}>Abrir selfie</button>{application.identity.status === 'pending' && <><button type="button" className={styles.identityApprove} disabled={saving} onClick={() => onIdentityReview('verified')}>Confirmar rosto</button><button type="button" className={styles.identityReject} disabled={saving} onClick={() => onIdentityReview('unverified')}>Pedir nova captura</button></>}</div>}
       </section>
       <label className={styles.notes}><span>Observação para o candidato</span><textarea value={notes} onChange={event => setNotes(event.target.value.slice(0, 500))} placeholder="Explique somente se precisar pedir uma correção." /><small>{notes.length}/500</small></label>
       <footer>
@@ -128,7 +129,7 @@ export function AdminPage() {
     const applicationRows = data || []
     const userIds = applicationRows.map(item => item.user_id)
     const identityResult = userIds.length
-      ? await supabase.from('driver_identity_verifications').select('user_id, status, failure_reason, verified_at').in('user_id', userIds)
+      ? await supabase.from('driver_identity_verifications').select('user_id, status, failure_reason, verified_at, selfie_path').in('user_id', userIds)
       : { data: [], error: null }
     const identityByUser = Object.fromEntries((identityResult.data || []).map(item => [item.user_id, item]))
     setApplications(applicationRows.map(item => ({ ...item, identity: identityByUser[item.user_id] || null })))
@@ -183,6 +184,22 @@ export function AdminPage() {
     await loadStores()
   }
 
+  async function reviewIdentity(status) {
+    setSaving(true)
+    const { error } = await supabase.rpc('review_driver_identity', { p_user_id: selected.user_id, p_status: status })
+    setSaving(false)
+    if (error) { setNotice('Não foi possível salvar a análise do rosto. A migration do modo de teste precisa estar aplicada.'); return }
+    setSelected(null)
+    setNotice(status === 'verified' ? 'Rosto conferido. Agora o motorista pode ser aprovado.' : 'Foi solicitada uma nova captura de rosto.')
+    await load()
+  }
+
+  async function openSelfie(path) {
+    const { data, error } = await supabase.storage.from('driver-selfies').createSignedUrl(path, 300)
+    if (error || !data?.signedUrl) { setNotice('Não foi possível abrir a selfie.'); return }
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer')
+  }
+
   if (account.loading || account.role !== 'admin') return <AccessState account={account} />
 
   return <main className={styles.page}>
@@ -219,6 +236,6 @@ export function AdminPage() {
       </>}
       </div>
     </section>
-    <AnimatePresence>{selected && <ReviewPanel application={selected} onClose={() => setSelected(null)} onReview={review} saving={saving} />}{selectedStore && <StoreReviewPanel store={selectedStore} onClose={() => setSelectedStore(null)} onReview={reviewStore} saving={saving} />}{saving && <LoadingOverlay label="Quase lá" detail="Salvando a decisão deste cadastro." />}</AnimatePresence>
+    <AnimatePresence>{selected && <ReviewPanel application={selected} onClose={() => setSelected(null)} onReview={review} onIdentityReview={reviewIdentity} onOpenSelfie={openSelfie} saving={saving} />}{selectedStore && <StoreReviewPanel store={selectedStore} onClose={() => setSelectedStore(null)} onReview={reviewStore} saving={saving} />}{saving && <LoadingOverlay label="Quase lá" detail="Salvando a decisão deste cadastro." />}</AnimatePresence>
   </main>
 }

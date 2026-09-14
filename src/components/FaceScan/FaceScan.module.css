@@ -1,0 +1,27 @@
+.overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(20 21 18 / 72%); backdrop-filter: blur(6px); }
+.sheet { width: min(100%, 430px); padding: 22px; border-radius: 26px; background: #fff; box-shadow: 0 24px 80px rgb(0 0 0 / 25%); }
+.sheet header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.sheet header small { color: #8a7700; font-size: 9px; font-weight: 850; letter-spacing: .14em; }
+.sheet h2 { margin-top: 6px; font-family: var(--font-display); font-size: 25px; letter-spacing: -.04em; }
+.sheet header button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #f1f1ec; color: #262720; cursor: pointer; }
+.camera { position: relative; display: grid; min-height: 360px; margin-top: 19px; overflow: hidden; place-items: center; border-radius: 20px; background: #242621; }
+.camera video { width: 100%; height: 100%; min-height: 360px; object-fit: cover; transform: scaleX(-1); }
+.faceGuide { position: absolute; width: 210px; height: 270px; border: 2px solid rgb(255 255 255 / 78%); border-radius: 48% 48% 45% 45%; box-shadow: 0 0 0 999px rgb(0 0 0 / 18%); transition: border-color .2s ease, box-shadow .2s ease; }
+.cameraReady .faceGuide { border-color: #ffda00; box-shadow: 0 0 0 999px rgb(0 0 0 / 12%), 0 0 0 5px rgb(255 218 0 / 18%); }
+.faceGuide i { position: absolute; width: 22px; height: 22px; border-color: #fff; border-style: solid; }
+.faceGuide i:first-child { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 10px 0 0; }
+.faceGuide i:last-child { right: -2px; bottom: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 10px; }
+.cameraStatus { position: absolute; bottom: 15px; display: inline-flex; align-items: center; gap: 8px; max-width: calc(100% - 30px); padding: 9px 13px; border-radius: 999px; background: rgb(20 21 18 / 76%); color: #fff; font-size: 11px; font-weight: 700; }
+.cameraStatus svg { color: #ffda00; }
+.cameraLoading { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(20 21 18 / 38%); color: #ffda00; font-size: 34px; }
+.privacy { display: flex; align-items: flex-start; gap: 11px; margin-top: 16px; padding: 12px 13px; border-radius: 13px; background: #fff8cf; color: #615a2d; font-size: 10px; line-height: 1.45; }
+.privacy svg { margin-top: 2px; color: #8c7800; }
+.privacy strong { display: block; margin-bottom: 2px; color: #2d2d24; font-size: 11px; }
+.capture, .errorState button { display: inline-flex; width: 100%; min-height: 50px; align-items: center; justify-content: center; gap: 11px; margin-top: 15px; border: 0; border-radius: 14px; background: #ffda00; color: #20211d; font: inherit; font-size: 13px; font-weight: 850; cursor: pointer; }
+.capture:disabled { cursor: not-allowed; opacity: .45; }
+.errorState { display: grid; place-items: center; padding: 54px 16px 12px; text-align: center; }
+.errorState > span { display: grid; width: 62px; height: 62px; place-items: center; border-radius: 20px; background: #ffda00; font-size: 23px; }
+.errorState h3 { margin-top: 17px; font-family: var(--font-display); font-size: 20px; }
+.errorState p { margin-top: 8px; color: #77796f; font-size: 12px; line-height: 1.5; }
+.errorState button { width: auto; padding: 0 20px; }
+@media (max-width: 480px) { .overlay { align-items: end; padding: 0; } .sheet { width: 100%; border-radius: 26px 26px 0 0; padding: 20px 17px calc(20px + env(safe-area-inset-bottom)); } .camera, .camera video { min-height: 330px; } }

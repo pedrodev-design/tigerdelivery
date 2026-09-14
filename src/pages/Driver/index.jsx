@@ -26,6 +26,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useAccount } from '../../hooks/useAccount'
 import { useIdentityVerification } from '../../hooks/useIdentityVerification'
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
+import { FaceScan } from '../../components/FaceScan'
 import { formatCpf, formatPhone, isValidCpf, onlyDigits } from '../../utils/validators'
 import { supabase } from '../../lib/supabase'
 import styles from './Driver.module.css'
@@ -208,12 +209,13 @@ export function DriverPage() {
   const account = useAccount()
   const identity = useIdentityVerification(account.user)
   const [editing, setEditing] = useState(false)
+  const [showFaceScan, setShowFaceScan] = useState(false)
   useEffect(() => { document.title = 'Tigre Entregas — Área do motorista' }, [])
   if (account.loading) return <LoadingOverlay label="Quase lá" detail="Abrindo sua área de entregas." />
   if (!account.user) return <Gate title="Entre para continuar" text="O cadastro de entregador fica ligado à sua conta TigreFood." />
   if (account.error) return <Gate title="Não conseguimos abrir sua conta" text="Tente novamente em alguns instantes." action="Voltar ao TigreFood" href="#catalogo" />
   if (account.role === 'admin') return <Gate title="Painel administrativo disponível" text="Sua conta administra cadastros de entregadores." action="Abrir painel administrativo" href="#admin" icon={faShieldHalved} />
   if (account.role === 'driver' && account.application?.status === 'approved') return <DriverHome account={account} />
-  if (account.application && !editing) return <><Status application={account.application} onEdit={() => setEditing(true)} identityVerification={identity.verification || account.identityVerification} onStartIdentity={identity.start} identityStarting={identity.starting} identityError={identity.error} />{identity.starting && <LoadingOverlay label="Quase lá" detail="Abrindo a verificação segura." />}</>
+  if (account.application && !editing) return <><Status application={account.application} onEdit={() => setEditing(true)} identityVerification={identity.verification || account.identityVerification} onStartIdentity={() => setShowFaceScan(true)} identityStarting={false} identityError={identity.error} />{showFaceScan && <FaceScan user={account.user} onClose={() => setShowFaceScan(false)} onComplete={async () => { setShowFaceScan(false); await identity.refresh(); await account.refresh() }} />}</>
   return <ApplicationForm account={account} onSent={() => setEditing(false)} />
 }
