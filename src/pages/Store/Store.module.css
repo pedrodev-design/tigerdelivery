@@ -3,7 +3,7 @@
 .header > a, .header > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: #fff; color: #20211d; text-decoration: none; }
 .header > span { justify-self: end; background: #20211d; color: #ffda00; }
 .header > div { padding-left: 12px; line-height: 1.05; }
-.header small { display: block; margin-bottom: 5px; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+.header small { display: block; margin-bottom: 5px; font-size: 9px; font-weight: 800; letter-spacing: .02em; text-transform: capitalize; }
 .header strong { font-family: var(--font-display); font-size: 19px; }
 .centerState { display: flex; min-height: calc(100svh - 82px); flex-direction: column; align-items: center; justify-content: center; padding: 52px 22px 80px; text-align: center; }
 .centerState > span { display: grid; place-items: center; width: 86px; height: 86px; border-radius: 28px; background: #ffda00; font-size: 32px; }
@@ -11,7 +11,7 @@
 .centerState h1 { max-width: 580px; margin-top: 24px; font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); line-height: 1.02; letter-spacing: -.045em; }
 .centerState > p:not(.kicker) { max-width: 470px; margin-top: 13px; color: #74766d; font-size: 14px; line-height: 1.65; }
 .centerState a, .darkAction, .primaryAction { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 52px; margin-top: 28px; padding: 0 22px; border: 0; border-radius: 14px; background: #20211d; color: #fff; font-size: 13px; font-weight: 750; text-decoration: none; cursor: pointer; }
-.kicker { color: #907b00; font-size: 10px; font-weight: 850; letter-spacing: .13em; }
+.kicker { color: #907b00; font-size: 10px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .application { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(400px, 1.2fr); gap: clamp(40px, 7vw, 110px); width: min(100%, 1120px); margin: 0 auto; padding: 62px clamp(20px, 5vw, 64px) 90px; }
 .applicationIntro { align-self: start; position: sticky; top: 136px; }
 .applicationIntro h1 { margin-top: 14px; font-family: var(--font-display); font-size: clamp(39px, 5vw, 64px); line-height: .98; letter-spacing: -.06em; }
@@ -57,7 +57,7 @@
 .sideBrand > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #ffda00; color: #20211d; }
 .sideBrand strong, .sideBrand small { display: block; }
 .sideBrand strong { font-family: var(--font-display); font-size: 18px; }
-.sideBrand small { margin-top: 3px; color: #999b93; font-size: 9px; text-transform: uppercase; letter-spacing: .12em; }
+.sideBrand small { margin-top: 3px; color: #999b93; font-size: 9px; text-transform: capitalize; letter-spacing: .02em; }
 .sidebar nav { display: grid; gap: 7px; }
 .sidebar nav button { display: flex; align-items: center; gap: 13px; min-height: 48px; padding: 0 14px; border: 0; border-radius: 13px; background: transparent; color: #aeb0a8; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
 .sidebar nav button small { display: grid; place-items: center; min-width: 20px; height: 20px; margin-left: auto; border-radius: 10px; background: #41423c; color: #fff; font-size: 9px; }
@@ -66,7 +66,7 @@
 .backLink { display: flex; align-items: center; gap: 11px; margin-top: auto; padding: 13px 12px; color: #c6c8c0; font-size: 11px; text-decoration: none; }
 .workspace { min-height: 100svh; margin-left: 236px; }
 .topbar { display: flex; min-height: 112px; align-items: center; justify-content: space-between; gap: 20px; padding: 0 clamp(24px, 4vw, 58px); background: #ffda00; }
-.topbar small { display: block; margin-bottom: 4px; font-size: 9px; font-weight: 850; letter-spacing: .13em; }
+.topbar small { display: block; margin-bottom: 4px; font-size: 9px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .topbar h1 { font-family: var(--font-display); font-size: 30px; letter-spacing: -.04em; }
 .topbar p { margin-top: 5px; color: #62570d; font-size: 11px; }
 .topActions { display: flex; align-items: center; gap: 13px; }
@@ -78,7 +78,7 @@
 .storeAvatar { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #20211d; color: #ffda00; }
 .content { width: min(100%, 1240px); margin: 0 auto; padding: 34px clamp(24px, 4vw, 58px) 70px; }
 .welcomeCard { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 148px; padding: 26px 28px; border-radius: 24px; background: #20211d; color: #fff; }
-.welcomeCard small { color: #ffda00; font-size: 9px; font-weight: 850; letter-spacing: .13em; }
+.welcomeCard small { color: #ffda00; font-size: 9px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .welcomeCard h2 { margin-top: 7px; font-family: var(--font-display); font-size: clamp(23px, 3vw, 31px); letter-spacing: -.04em; }
 .welcomeCard p { margin-top: 7px; color: #c5c7bf; font-size: 11px; }
 .welcomeCard > span { display: grid; place-items: center; width: 62px; height: 62px; flex: 0 0 62px; border-radius: 21px; background: #ffda00; color: #20211d; font-size: 24px; }
@@ -86,7 +86,7 @@
 .stats article { display: flex; align-items: center; gap: 13px; min-height: 96px; padding: 18px; border-radius: 18px; background: #fff; }
 .stats article > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: #fff0a6; color: #756300; }
 .stats small, .stats strong { display: block; }
-.stats small { color: #85877f; font-size: 8px; font-weight: 800; letter-spacing: .09em; }
+.stats small { color: #85877f; font-size: 8px; font-weight: 800; letter-spacing: .02em; text-transform: capitalize; }
 .stats strong { margin-top: 5px; font-family: var(--font-display); font-size: 21px; }
 .nextActions, .menuPanel, .ordersPanel { margin-top: 25px; padding: 26px 28px; border-radius: 23px; background: #fff; }
 .nextActions header { margin-bottom: 12px; }

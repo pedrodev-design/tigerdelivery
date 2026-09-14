@@ -59,7 +59,7 @@ function ReviewPanel({ application, onClose, onReview, onIdentityReview, onOpenS
   const vehicle = vehicleInfo[application.vehicle_type] || vehicleInfo.motorcycle
   return <motion.div className={styles.reviewOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <motion.aside className={styles.reviewPanel} initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 24, opacity: 0 }} transition={{ duration: .22 }}>
-      <header><div><small>ANÁLISE DE CADASTRO</small><h2>{profile.full_name || 'Novo entregador'}</h2></div><button onClick={onClose} aria-label="Fechar"><Icon icon={faXmark} /></button></header>
+      <header><div><small>Análise de cadastro</small><h2>{profile.full_name || 'Novo entregador'}</h2></div><button onClick={onClose} aria-label="Fechar"><Icon icon={faXmark} /></button></header>
       <div className={styles.identity}>
         <span>{profile.avatar_url ? <img src={profile.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={faUser} />}</span>
         <div><strong>{profile.full_name || 'Nome não informado'}</strong><small>Enviado em {date(application.submitted_at)}</small></div>
@@ -89,7 +89,7 @@ function StoreReviewPanel({ store, onClose, onReview, saving }) {
   const [notes, setNotes] = useState(store.review_notes || '')
   return <motion.div className={styles.reviewOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <motion.aside className={styles.reviewPanel} initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 24, opacity: 0 }} transition={{ duration: .22 }}>
-      <header><div><small>ANÁLISE DE LOJA</small><h2>{store.name}</h2></div><button onClick={onClose} aria-label="Fechar"><Icon icon={faXmark} /></button></header>
+      <header><div><small>Análise de loja</small><h2>{store.name}</h2></div><button onClick={onClose} aria-label="Fechar"><Icon icon={faXmark} /></button></header>
       <div className={styles.identity}><span><Icon icon={faStore} /></span><div><strong>{store.category}</strong><small>Enviada em {date(store.created_at)}</small></div><b data-status={store.status}>{store.status === 'pending' ? 'Em análise' : store.status === 'approved' ? 'Aprovada' : 'Recusada'}</b></div>
       <section className={styles.reviewData}><h3>Dados comerciais</h3><dl><div><dt><Icon icon={faIdCard} />CNPJ</dt><dd>{store.cnpj}</dd></div><div><dt><Icon icon={faPhone} />Telefone</dt><dd>{formatPhone(store.phone)}</dd></div><div><dt><Icon icon={faLocationDot} />Localização</dt><dd>{store.city}{store.address ? ` · ${store.address}` : ''}</dd></div><div><dt><Icon icon={faBowlFood} />Descrição</dt><dd>{store.description || 'Não informada'}</dd></div></dl></section>
       <label className={styles.notes}><span>Observação para o lojista</span><textarea value={notes} onChange={event => setNotes(event.target.value.slice(0, 500))} placeholder="Explique somente se precisar pedir uma correção." /><small>{notes.length}/500</small></label>
@@ -209,13 +209,13 @@ export function AdminPage() {
       <a href="#catalogo"><Icon icon={faArrowLeft} />Voltar ao aplicativo</a>
     </aside>
     <section className={styles.workspace}>
-      <header className={styles.topbar}><div><small>PAINEL ADMINISTRATIVO</small><h1>{section === 'drivers' ? 'Entregadores' : 'Lojas'}</h1></div><span className={styles.adminAvatar}>{account.profile?.avatar_url ? <img src={account.profile.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={faUser} />}</span></header>
+      <header className={styles.topbar}><div><small>Painel administrativo</small><h1>{section === 'drivers' ? 'Entregadores' : 'Lojas'}</h1></div><span className={styles.adminAvatar}>{account.profile?.avatar_url ? <img src={account.profile.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={faUser} />}</span></header>
       <div className={styles.content}>
       {section === 'stores' ? <StoreQueue stores={stores} loading={storeLoading} filter={storeFilter} setFilter={setStoreFilter} counts={storeCounts} notice={notice} onRefresh={loadStores} onSelect={setSelectedStore} /> : <>
         <section className={styles.summary}>
-          <article><span><Icon icon={faUserClock} /></span><div><small>AGUARDANDO ANÁLISE</small><strong>{counts.pending}</strong></div></article>
-          <article><span><Icon icon={faCircleCheck} /></span><div><small>MOTORISTAS APROVADOS</small><strong>{counts.approved}</strong></div></article>
-          <article><span><Icon icon={faUsers} /></span><div><small>TOTAL DE CADASTROS</small><strong>{counts.all}</strong></div></article>
+          <article><span><Icon icon={faUserClock} /></span><div><small>Aguardando análise</small><strong>{counts.pending}</strong></div></article>
+          <article><span><Icon icon={faCircleCheck} /></span><div><small>Motoristas aprovados</small><strong>{counts.approved}</strong></div></article>
+          <article><span><Icon icon={faUsers} /></span><div><small>Total de cadastros</small><strong>{counts.all}</strong></div></article>
         </section>
 
         <section className={styles.queue}>

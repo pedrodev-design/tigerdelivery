@@ -28,8 +28,11 @@ export function FaceScan({ user, onClose, onComplete }) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } }, audio: false })
         if (cancelled) { stream.getTracks().forEach(track => track.stop()); return }
         streamRef.current = stream
-        videoRef.current.srcObject = stream
-        await videoRef.current.play()
+        const video = videoRef.current
+        if (!video) throw new Error('camera_unavailable')
+        video.srcObject = stream
+        if (video.readyState < 1) await new Promise(resolve => { video.onloadedmetadata = resolve })
+        await video.play().catch(() => undefined)
         setPhase('scanning')
         setMessage('Posicione o rosto dentro do círculo')
         try {
@@ -41,7 +44,8 @@ export function FaceScan({ user, onClose, onComplete }) {
           setMessage('Câmera pronta. Centralize o rosto para continuar.')
         }
       } catch (cameraError) {
-        setError(cameraError.message === 'camera_unsupported' ? 'Seu navegador não permite acesso à câmera.' : 'Permita o acesso à câmera para fazer a captura.')
+        const reason = cameraError.name === 'NotAllowedError' ? 'Permita o acesso à câmera no navegador e tente novamente.' : cameraError.name === 'NotFoundError' ? 'Nenhuma câmera foi encontrada neste dispositivo.' : cameraError.message === 'camera_unsupported' ? 'Seu navegador não permite acesso à câmera.' : 'Não foi possível iniciar a câmera. Confira a permissão e tente novamente.'
+        setError(reason)
         setPhase('error')
       }
     }

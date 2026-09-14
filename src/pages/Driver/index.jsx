@@ -38,7 +38,7 @@ const vehicles = [
   { id: 'car', label: 'Carro', icon: faCar },
 ]
 
-function Shell({ children, eyebrow = 'PARCEIROS TIGREFOOD' }) {
+function Shell({ children, eyebrow = 'Parceiros TigreFood' }) {
   return <main className={styles.page}>
     <header className={styles.header}>
       <a href="#catalogo" aria-label="Voltar ao TigreFood"><Icon icon={faArrowLeft} /></a>
@@ -62,7 +62,7 @@ function DriverHome({ account }) {
   const firstName = account.profile?.full_name?.split(' ')[0] || 'Parceiro'
   const notify = message => { setToast(message); window.setTimeout(() => setToast(''), 2200) }
 
-  return <Shell eyebrow="ÁREA DO ENTREGADOR">
+  return <Shell eyebrow="Área do entregador">
     <section className={styles.driverHome}>
       <div className={styles.driverIntro}>
         <div><p>Olá, {firstName}</p><h1>{online ? 'Você está disponível' : 'Pronto para rodar?'}</h1></div>
@@ -73,11 +73,11 @@ function DriverHome({ account }) {
 
       <motion.section className={`${styles.availabilityCard} ${online ? styles.available : ''}`} layout>
         <span className={styles.radar}><i /><Icon icon={online ? faLocationDot : faMotorcycle} /></span>
-        <div><small>{online ? 'BUSCANDO POR PERTO' : 'VOCÊ ESTÁ OFFLINE'}</small><h2>{online ? 'Procurando a melhor entrega' : 'Fique online para receber pedidos'}</h2><p>{online ? 'Quando aparecer uma boa rota, você vê o valor antes de aceitar.' : 'Você escolhe quando começar e pode parar a qualquer momento.'}</p></div>
+        <div><small>{online ? 'Buscando por perto' : 'Você está offline'}</small><h2>{online ? 'Procurando a melhor entrega' : 'Fique online para receber pedidos'}</h2><p>{online ? 'Quando aparecer uma boa rota, você vê o valor antes de aceitar.' : 'Você escolhe quando começar e pode parar a qualquer momento.'}</p></div>
       </motion.section>
 
       <section className={styles.earnings}>
-        <div><small>GANHOS DE HOJE</small><strong>R$ 0,00</strong><span>Nenhuma entrega finalizada</span></div>
+        <div><small>Ganhos de hoje</small><strong>R$ 0,00</strong><span>Nenhuma entrega finalizada</span></div>
         <button onClick={() => notify('O extrato será exibido quando houver entregas')}><Icon icon={faWallet} /></button>
       </section>
 
@@ -123,7 +123,7 @@ function Status({ application, onEdit, identityVerification, onStartIdentity, id
   const pending = application.status === 'pending'
   return <Shell><section className={styles.statusPage}>
     <span className={`${styles.statusIcon} ${pending ? styles.statusPending : styles.statusRejected}`}><Icon icon={pending ? faClock : faRotate} /></span>
-    <p className={styles.kicker}>{pending ? 'CADASTRO RECEBIDO' : 'PRECISAMOS DE UMA CORREÇÃO'}</p>
+    <p className={styles.kicker}>{pending ? 'Cadastro recebido' : 'Precisamos de uma correção'}</p>
     <h1>{pending ? 'Estamos conferindo seus dados' : 'Seu cadastro voltou para revisão'}</h1>
     <p>{pending ? 'A análise é feita pela equipe TigreFood. Assim que for aprovado, esta tela vira automaticamente sua área de entregas.' : application.review_notes || 'Confira seus dados e envie novamente para uma nova análise.'}</p>
     <div className={styles.timeline}>
@@ -185,7 +185,7 @@ function ApplicationForm({ account, onSent }) {
   }
 
   return <Shell><section className={styles.application}>
-    <div className={styles.applicationIntro}><p className={styles.kicker}>ENTREGUE COM A TIGREFOOD</p><h1>Faça seu horário.<br />A cidade é sua.</h1><p>Complete o cadastro para nossa equipe analisar. A área de entregas só aparece depois da aprovação.</p></div>
+    <div className={styles.applicationIntro}><p className={styles.kicker}>Entregue com a TigreFood</p><h1>Faça seu horário.<br />A cidade é sua.</h1><p>Complete o cadastro para nossa equipe analisar. A área de entregas só aparece depois da aprovação.</p></div>
     <form onSubmit={submit} noValidate>
       <div className={styles.formSection}><span>1</span><div><h2>Seus dados</h2><p>Usados somente para validar sua identidade.</p></div></div>
       <label className={errors.cpf ? styles.invalid : ''}><span><Icon icon={faIdCard} />CPF</span><input value={values.cpf} onChange={event => update('cpf', event.target.value)} inputMode="numeric" autoComplete="off" placeholder="000.000.000-00" />{errors.cpf && <small>{errors.cpf}</small>}</label>

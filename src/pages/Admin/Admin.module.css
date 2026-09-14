@@ -4,7 +4,7 @@
 .brand > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: #ffda00; color: #20211d; }
 .brand strong, .brand small { display: block; }
 .brand strong { font-family: var(--font-display); font-size: 18px; }
-.brand small { margin-top: 3px; color: #999b93; font-size: 9px; text-transform: uppercase; letter-spacing: .12em; }
+.brand small { margin-top: 3px; color: #999b93; font-size: 9px; text-transform: capitalize; letter-spacing: .02em; }
 .sidebar nav { display: grid; gap: 7px; }
 .sidebar nav button { display: flex; align-items: center; gap: 13px; min-height: 48px; padding: 0 14px; border: 0; border-radius: 13px; background: transparent; color: #aeb0a8; font: inherit; font-size: 12px; text-align: left; }
 .sidebar nav .navActive { background: #343630; color: #fff; }
@@ -12,7 +12,7 @@
 .sidebar > a { display: flex; align-items: center; gap: 11px; margin-top: auto; padding: 13px 12px; color: #c6c8c0; font-size: 11px; text-decoration: none; }
 .workspace { min-height: 100svh; margin-left: 224px; }
 .topbar { display: flex; min-height: 96px; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 4vw, 58px); background: #ffda00; }
-.topbar small { display: block; margin-bottom: 4px; font-size: 9px; font-weight: 850; letter-spacing: .13em; }
+.topbar small { display: block; margin-bottom: 4px; font-size: 9px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .topbar h1 { font-family: var(--font-display); font-size: 30px; letter-spacing: -.04em; }
 .adminAvatar { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: #20211d; color: #fff; }
 .adminAvatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -22,7 +22,7 @@
 .summary article > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #fff4a8; color: #846f00; }
 .summary article:first-child > span { background: #ffda00; color: #20211d; }
 .summary small, .summary strong { display: block; }
-.summary small { max-width: 130px; color: #7e8077; font-size: 8px; font-weight: 800; line-height: 1.4; letter-spacing: .09em; }
+.summary small { max-width: 130px; color: #7e8077; font-size: 8px; font-weight: 800; line-height: 1.4; letter-spacing: .02em; text-transform: capitalize; }
 .summary strong { margin-top: 5px; font-family: var(--font-display); font-size: 30px; }
 .queue { margin-top: 20px; padding: 28px; border-radius: 24px; background: #fff; }
 .queue > header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -60,7 +60,7 @@
 .reviewOverlay { position: fixed; z-index: 80; inset: 0; display: flex; justify-content: flex-end; background: #16171388; backdrop-filter: blur(5px); }
 .reviewPanel { width: min(100%, 480px); height: 100%; overflow-y: auto; padding: 30px; background: #fff; box-shadow: -18px 0 50px #0002; }
 .reviewPanel > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
-.reviewPanel header small { color: #8e7900; font-size: 9px; font-weight: 850; letter-spacing: .12em; }
+.reviewPanel header small { color: #8e7900; font-size: 9px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .reviewPanel header h2 { margin-top: 6px; font-family: var(--font-display); font-size: 29px; letter-spacing: -.045em; }
 .reviewPanel header button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #f0f0eb; cursor: pointer; }
 .identity { display: grid; grid-template-columns: 48px 1fr auto; gap: 13px; align-items: center; margin-top: 28px; padding: 16px; border-radius: 18px; background: #20211d; color: #fff; }
