@@ -46,7 +46,7 @@ begin
   if not (select private.current_user_is_admin()) then raise exception 'admin_required' using errcode = '42501'; end if;
   if p_status not in ('verified', 'unverified') then raise exception 'invalid_identity_status' using errcode = '22023'; end if;
   next_status := p_status::public.driver_identity_status;
-  update public.driver_identity_verifications set status = next_status, failure_reason = nullif(left(trim(coalesce(p_reason, '')), 500), ''), verified_at = case when next_status = 'verified' then now() else null end, updated_at = now() where user_id = p_user_id returning * into result;
+  update public.driver_identity_verifications set status = next_status, failure_reason = nullif(left(trim(coalesce(p_reason, '')), 500), ''), verified_at = case when next_status = 'verified' then now() else null end, selfie_path = null, selfie_captured_at = null, updated_at = now() where user_id = p_user_id returning * into result;
   if result.user_id is null then raise exception 'identity_not_found' using errcode = 'P0002'; end if;
   return result;
 end;

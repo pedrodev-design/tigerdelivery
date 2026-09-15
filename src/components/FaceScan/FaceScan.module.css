@@ -19,6 +19,16 @@
 .privacy strong { display: block; margin-bottom: 2px; color: #2d2d24; font-size: 11px; }
 .capture, .errorState button { display: inline-flex; width: 100%; min-height: 50px; align-items: center; justify-content: center; gap: 11px; margin-top: 15px; border: 0; border-radius: 14px; background: #ffda00; color: #20211d; font: inherit; font-size: 13px; font-weight: 850; cursor: pointer; }
 .capture:disabled { cursor: not-allowed; opacity: .45; }
+.progressSteps { display: flex; gap: 7px; margin-top: 15px; color: #aaa; font-size: 10px; font-weight: 700; }
+.progressSteps span { flex: 1; padding-bottom: 7px; border-bottom: 2px solid #ecece6; text-align: center; transition: color .2s ease, border-color .2s ease; }
+.progressSteps .done { border-color: #ffda00; color: #4f4b20; }
+.progressBar { height: 4px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: #ecece6; }
+.progressBar span { display: block; height: 100%; border-radius: inherit; background: #ffda00; transition: width .24s ease; }
+.sentState { display: grid; place-items: center; padding: 54px 16px 12px; text-align: center; }
+.sentState > span { display: grid; width: 66px; height: 66px; place-items: center; border-radius: 22px; background: #dff3e7; color: #24783b; font-size: 25px; }
+.sentState h3 { margin-top: 17px; font-family: var(--font-display); font-size: 22px; }
+.sentState p { max-width: 285px; margin-top: 8px; color: #77796f; font-size: 12px; line-height: 1.5; }
+.sentState button { width: auto; min-height: 45px; margin-top: 19px; padding: 0 24px; border: 0; border-radius: 13px; background: #20211d; color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 .errorState { display: grid; place-items: center; padding: 54px 16px 12px; text-align: center; }
 .errorState > span { display: grid; width: 62px; height: 62px; place-items: center; border-radius: 20px; background: #ffda00; font-size: 23px; }
 .errorState h3 { margin-top: 17px; font-family: var(--font-display); font-size: 20px; }

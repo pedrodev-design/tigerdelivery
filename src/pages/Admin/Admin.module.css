@@ -89,6 +89,12 @@
 .identityActions .identityApprove { background: #ffda00; color: #20211d; }
 .identityActions .identityReject { background: #f1e8e4; color: #963d29; }
 .identityActions button:disabled { cursor: wait; opacity: .55; }
+.selfieReview { margin-top: 12px; padding: 12px; border-radius: 16px; background: #f3f3ef; }
+.selfieFrame { display: grid; min-height: 220px; place-items: center; overflow: hidden; border-radius: 12px; background: #20211d; }
+.selfieFrame img { display: block; width: 100%; max-height: 320px; object-fit: cover; }
+.selfieLoading, .selfieEmpty { color: #ffda00; font-size: 11px; }
+.selfieLoading { animation: spin .8s linear infinite; }
+.selfieEmpty { padding: 24px; color: #777970; text-align: center; }
 .notes { display: block; margin-top: 24px; }
 .notes > span { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 700; }
 .notes textarea { width: 100%; min-height: 110px; resize: vertical; padding: 13px; border: 0; border-radius: 14px; outline: 2px solid transparent; background: #f2f2ee; font: inherit; font-size: 12px; line-height: 1.5; }
