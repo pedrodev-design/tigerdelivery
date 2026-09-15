@@ -334,6 +334,7 @@
 .saveAddress svg { width: 12px; }
 @keyframes mapSpin { to { transform: rotate(360deg); } }
 @keyframes locationPulse { 0%, 100% { stroke-width: 3; } 50% { stroke-width: 4; } }
+@keyframes shimmer { to { background-position: -200% 0; } }
 .cartPage, .paymentPage { display: grid; grid-template-rows: auto 1fr; min-height: 100dvh; overflow-x: clip; background: #fff; }
 .cartPageHeader { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; min-height: 104px; padding: 22px clamp(28px, 5vw, 72px); background: #ffda00; }
 .cartPageHeader > button { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; padding: 0; border: 0; border-radius: 50%; background: #fff; color: #242424; font-size: 14px; }
@@ -442,6 +443,8 @@
 .changeField input:focus { box-shadow: inset 0 0 0 2px #ffda00; background: #fff; }
 .paymentSummary { margin: 1px 0 21px; }
 .paymentNote { margin: 11px auto 0; color: #8a8a84; font-size: 9px; line-height: 1.45; text-align: center; }
+.checkoutError { margin: 0 0 12px; padding: 11px 13px; border-radius: 11px; background: #fff0eb; color: #9b3d25; font-size: 10px; line-height: 1.45; }
+.checkoutSpinner { animation: mapSpin .75s linear infinite; }
 .modalIcon { display: grid; place-items: center; width: 45px; height: 45px; background: #fff2ab; color: #8c752d; border-radius: 12px; margin-bottom: 22px; }
 .addressForm { display: flex; flex-direction: column; gap: 17px; }
 .addressForm label { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; font-size: 12px; font-weight: 500; }
@@ -547,6 +550,39 @@
 .ordersActions a { background: #ffda00; color: #242424; }
 .ordersActions button { background: #242424; color: #fff; }
 .ordersActions svg { width: 12px; }
+.ordersPage { width: min(100%, 820px); margin: 0 auto; padding: 10px 0 70px; }
+.ordersPage > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+.ordersPage > header span { color: #857000; font-size: 10px; font-weight: 750; }
+.ordersPage > header h2 { margin-top: 4px; font-family: var(--font-display); font-size: 28px; letter-spacing: -.55px; }
+.ordersPage > header button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 0; border-radius: 11px; background: #efeee8; color: #4f504a; font-size: 10px; font-weight: 700; }
+.ordersPage > header button svg { width: 11px; }
+.ordersError { margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: #fff0eb; color: #9b3d25; font-size: 11px; }
+.customerOrderList { display: grid; gap: 14px; }
+.customerOrderList > article { padding: 20px; border: 1px solid #ebe9df; border-radius: 21px; background: #fff; box-shadow: 0 12px 34px #20211d0a; }
+.customerOrderTop { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 13px; align-items: center; }
+.customerOrderTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #ffda00; color: #242424; }
+.customerOrderTop > span svg { width: 16px; }
+.customerOrderTop > div { min-width: 0; }
+.customerOrderTop small, .customerOrderTop strong, .customerOrderTop p { display: block; }
+.customerOrderTop small { color: #8a8a82; font-size: 9px; }
+.customerOrderTop strong { margin-top: 2px; font-family: var(--font-display); font-size: 16px; }
+.customerOrderTop p { overflow: hidden; margin-top: 4px; color: #73746d; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.customerOrderTop > b { font-family: var(--font-display); font-size: 15px; }
+.customerOrderStatus { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-top: 18px; padding-top: 17px; border-top: 1px solid #efeee8; }
+.customerOrderStatus > div { display: grid; gap: 4px; }
+.customerOrderStatus span { font-size: 13px; font-weight: 800; }
+.customerOrderStatus small { color: #777970; font-size: 10px; line-height: 1.45; }
+.customerOrderStatus > strong { color: #8a8a82; font-size: 9px; font-weight: 600; white-space: nowrap; }
+.customerOrderAddress { display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 12px 13px; border-radius: 13px; background: #f5f4ef; }
+.customerOrderAddress > svg { width: 14px; color: #9d8500; }
+.customerOrderAddress span { display: grid; gap: 2px; min-width: 0; }
+.customerOrderAddress small { color: #8a8a82; font-size: 8px; }
+.customerOrderAddress strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.orderProgress { height: 4px; margin-top: 16px; overflow: hidden; border-radius: 999px; background: #ebeae4; }
+.orderProgress i { display: block; width: var(--order-progress); height: 100%; border-radius: inherit; background: #ffda00; transition: width .35s ease; }
+.cancelledOrder { opacity: .68; }
+.ordersLoading { display: grid; gap: 12px; width: min(100%, 820px); margin: 0 auto; }
+.ordersLoading i { height: 150px; border-radius: 21px; background: linear-gradient(100deg, #efeee9 25%, #faf9f5 50%, #efeee9 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
 .filterBolt { display: block; width: 11px; height: 13px; flex: 0 0 11px; }
 .toast { position: fixed; z-index: 100; bottom: 25px; left: 50%; transform: translateX(-50%); pointer-events: none; width: max-content; max-width: calc(100vw - 32px); }
 .toast > span { display: flex; align-items: center; gap: 12px; background: #303d29; color: #fff; padding: 15px 21px; border-radius: 11px; box-shadow: 0 5px 20px #1e271c20; font-size: 12px; }
@@ -721,6 +757,15 @@
   .ordersEmpty > p { max-width: 330px; font-size: 13px; }
   .ordersActions { flex-direction: column; width: 100%; max-width: 310px; margin-top: 24px; }
   .ordersActions a, .ordersActions button { width: 100%; min-height: 48px; font-size: 13px; }
+  .ordersPage { padding: 0 0 82px; }
+  .ordersPage > header { align-items: center; margin-bottom: 16px; }
+  .ordersPage > header h2 { font-size: 23px; }
+  .ordersPage > header button { min-height: 36px; padding: 0 11px; }
+  .customerOrderList > article { padding: 16px; border-radius: 18px; }
+  .customerOrderTop { grid-template-columns: 43px minmax(0, 1fr) auto; gap: 11px; }
+  .customerOrderTop > span { width: 43px; height: 43px; border-radius: 13px; }
+  .customerOrderTop > b { font-size: 13px; }
+  .customerOrderStatus { display: grid; gap: 8px; }
   .promoBanner { grid-template-columns: 58% 42%; min-height: 158px; border-radius: 19px; }
   .promoBanner > div { padding: 19px 0 19px 18px; }
   .promoBanner > div > span { margin-bottom: 7px; font-size: 9px; }

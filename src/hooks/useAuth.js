@@ -3,7 +3,7 @@ import { validateLoginForm } from '../utils/validators'
 import { getAuthMessage, isSupabaseConfigured, supabase } from '../lib/supabase'
 
 /**
- * Hook de autenticação — gerencia estado e lógica do login
+ * Hook de autenticação gaerencia estado e lógica do login
  */
 export function useAuth() {
   const [loading, setLoading] = useState(false)
@@ -15,7 +15,7 @@ export function useAuth() {
    * @param {{ email: string, password: string }} credentials
    */
   async function login({ email, password }) {
-    // Valida os campos antes de enviar
+   
     const validationErrors = validateLoginForm({ email, password })
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)

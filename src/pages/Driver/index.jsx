@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faArrowRight,
   faBicycle,
+  faBoxOpen,
   faCar,
   faCheck,
   faChevronRight,
@@ -17,6 +18,7 @@ import {
   faMotorcycle,
   faPhone,
   faReceipt,
+  faRoute,
   faRotate,
   faShieldHalved,
   faStar,
@@ -32,6 +34,7 @@ import { supabase } from '../../lib/supabase'
 import styles from './Driver.module.css'
 
 const Icon = ({ icon }) => <FontAwesomeIcon icon={icon} fixedWidth aria-hidden="true" />
+const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const vehicles = [
   { id: 'motorcycle', label: 'Moto', icon: faMotorcycle },
   { id: 'bicycle', label: 'Bicicleta', icon: faBicycle },
@@ -57,10 +60,47 @@ function Gate({ title, text, action = 'Entrar na minha conta', href = '#entrar',
 }
 
 function DriverHome({ account }) {
-  const [online, setOnline] = useState(false)
+  const [online, setOnline] = useState(true)
   const [toast, setToast] = useState('')
+  const [orders, setOrders] = useState([])
+  const [ordersLoading, setOrdersLoading] = useState(true)
+  const [ordersError, setOrdersError] = useState('')
+  const [updatingOrder, setUpdatingOrder] = useState('')
   const firstName = account.profile?.full_name?.split(' ')[0] || 'Parceiro'
   const notify = message => { setToast(message); window.setTimeout(() => setToast(''), 2200) }
+
+  const loadOrders = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('store_orders')
+      .select('id, status, total, driver_fee, driver_accepted_at, picked_up_at, delivery_address, payment_method, created_at, stores(name, address, phone), store_order_items(product_name, quantity)')
+      .eq('driver_id', account.user.id)
+      .order('created_at', { ascending: false })
+      .limit(40)
+    setOrders(data || [])
+    setOrdersError(error ? 'Não foi possível atualizar suas entregas.' : '')
+    setOrdersLoading(false)
+  }, [account.user.id])
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadOrders, 0)
+    const channel = supabase.channel(`driver-orders-${account.user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_orders', filter: `driver_id=eq.${account.user.id}` }, loadOrders)
+      .subscribe()
+    return () => { window.clearTimeout(timer); supabase.removeChannel(channel) }
+  }, [account.user.id, loadOrders])
+
+  async function updateOrder(order, action) {
+    setUpdatingOrder(order.id)
+    const { error } = await supabase.rpc('driver_update_demo_order', { p_order_id: order.id, p_action: action })
+    setUpdatingOrder('')
+    if (error) { notify('Não foi possível atualizar esta entrega.'); return }
+    await loadOrders()
+    notify(action === 'accept' ? 'Entrega aceita' : action === 'pickup' ? 'Pedido retirado na loja' : 'Entrega finalizada')
+  }
+
+  const activeOrders = orders.filter(order => !['delivered', 'cancelled'].includes(order.status))
+  const deliveredToday = orders.filter(order => order.status === 'delivered' && new Date(order.created_at).toDateString() === new Date().toDateString())
+  const todayEarnings = deliveredToday.reduce((sum, order) => sum + Number(order.driver_fee || 0), 0)
 
   return <Shell eyebrow="Área do entregador">
     <section className={styles.driverHome}>
@@ -71,25 +111,49 @@ function DriverHome({ account }) {
         </button>
       </div>
 
-      <motion.section className={`${styles.availabilityCard} ${online ? styles.available : ''}`} layout>
+      {activeOrders.length > 0 && <section className={styles.deliveryQueue}>
+        <header><div><span>{activeOrders.length} {activeOrders.length === 1 ? 'entrega disponível' : 'entregas disponíveis'}</span><h2>Sua rota agora</h2></div><button onClick={loadOrders}><Icon icon={faRotate} />Atualizar</button></header>
+        {activeOrders.map(order => {
+          const pickup = order.stores?.address || 'Endereço da loja indisponível'
+          const destination = order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number, order.delivery_address?.neighborhood].filter(Boolean).join(', ')
+          const accepted = Boolean(order.driver_accepted_at)
+          const action = !accepted ? 'accept' : order.status === 'picked_up' ? 'deliver' : 'pickup'
+          const actionLabel = !accepted ? 'Aceitar entrega' : order.status === 'picked_up' ? 'Finalizar entrega' : 'Confirmar retirada'
+          const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`
+          return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+            <div className={styles.deliveryCardTop}><span><Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} /></span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
+            <div className={styles.deliveryRoute}>
+              <div><i /><span><small>Retirada</small><strong>{order.stores?.name || 'Loja TigreFood'}</strong><p>{pickup}</p></span></div>
+              <div><i /><span><small>Entrega</small><strong>{order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
+            </div>
+            <div className={styles.deliveryItems}><Icon icon={faReceipt} /><span>{(order.store_order_items || []).map(item => `${item.quantity}× ${item.product_name}`).join(' · ') || 'Itens do pedido'}</span><small>{order.payment_method === 'cash' ? 'Receber em dinheiro' : order.payment_method === 'card' ? 'Pago no cartão' : 'Pago pelo Pix'}</small></div>
+            <div className={styles.deliveryActions}><a href={mapsUrl} target="_blank" rel="noreferrer"><Icon icon={faRoute} />Abrir rota</a><button disabled={!online || updatingOrder === order.id} onClick={() => updateOrder(order, action)}>{updatingOrder === order.id ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button></div>
+          </motion.article>
+        })}
+      </section>}
+
+      {ordersError && <p className={styles.ordersError}>{ordersError}</p>}
+      {ordersLoading && <div className={styles.deliveryLoading}><i /><i /></div>}
+
+      {!ordersLoading && activeOrders.length === 0 && <motion.section className={`${styles.availabilityCard} ${online ? styles.available : ''}`} layout>
         <span className={styles.radar}><i /><Icon icon={online ? faLocationDot : faMotorcycle} /></span>
         <div><small>{online ? 'Buscando por perto' : 'Você está offline'}</small><h2>{online ? 'Procurando a melhor entrega' : 'Fique online para receber pedidos'}</h2><p>{online ? 'Quando aparecer uma boa rota, você vê o valor antes de aceitar.' : 'Você escolhe quando começar e pode parar a qualquer momento.'}</p></div>
-      </motion.section>
+      </motion.section>}
 
       <section className={styles.earnings}>
-        <div><small>Ganhos de hoje</small><strong>R$ 0,00</strong><span>Nenhuma entrega finalizada</span></div>
-        <button onClick={() => notify('O extrato será exibido quando houver entregas')}><Icon icon={faWallet} /></button>
+        <div><small>Ganhos de hoje</small><strong>{money(todayEarnings)}</strong><span>{deliveredToday.length ? `${deliveredToday.length} ${deliveredToday.length === 1 ? 'entrega finalizada' : 'entregas finalizadas'}` : 'Nenhuma entrega finalizada'}</span></div>
+        <button onClick={() => notify(deliveredToday.length ? 'Ganhos atualizados' : 'O extrato será exibido quando houver entregas')}><Icon icon={faWallet} /></button>
       </section>
 
       <div className={styles.metrics}>
-        <article><Icon icon={faReceipt} /><div><strong>0</strong><span>entregas hoje</span></div></article>
+        <article><Icon icon={faReceipt} /><div><strong>{deliveredToday.length}</strong><span>entregas hoje</span></div></article>
         <article><Icon icon={faStar} /><div><strong>—</strong><span>avaliação</span></div></article>
         <article><Icon icon={faClock} /><div><strong>0h</strong><span>tempo online</span></div></article>
       </div>
 
       <section className={styles.driverMenu}>
         <h2>Sua rotina</h2>
-        <button onClick={() => notify('Ainda não há entregas no histórico')}><span><Icon icon={faReceipt} />Histórico de entregas</span><Icon icon={faChevronRight} /></button>
+        <button onClick={() => notify(deliveredToday.length ? `${deliveredToday.length} entrega concluída hoje` : 'Ainda não há entregas no histórico')}><span><Icon icon={faReceipt} />Histórico de entregas</span><Icon icon={faChevronRight} /></button>
         <button onClick={() => notify('Seus documentos estão aprovados')}><span><Icon icon={faShieldHalved} />Documentos e segurança</span><Icon icon={faChevronRight} /></button>
         <button onClick={() => notify('Central do parceiro disponível em breve')}><span><Icon icon={faHeadset} />Ajuda para entregadores</span><Icon icon={faChevronRight} /></button>
       </section>

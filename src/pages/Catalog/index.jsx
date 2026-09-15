@@ -473,6 +473,64 @@ function AddressPage({ address, onBack, onSave }) {
   </motion.section>
 }
 
+const orderStatus = {
+  new: { label: 'Pedido recebido', step: 1 },
+  confirmed: { label: 'Confirmado pela loja', step: 2 },
+  preparing: { label: 'Em preparo', step: 2 },
+  ready: { label: 'Pronto para retirada', step: 3 },
+  picked_up: { label: 'Saiu para entrega', step: 4 },
+  delivered: { label: 'Entregue', step: 5 },
+  cancelled: { label: 'Cancelado', step: 0 },
+}
+
+function OrdersPage({ user, onBrowse }) {
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(Boolean(user))
+  const [error, setError] = useState('')
+
+  const loadOrders = useCallback(async () => {
+    if (!user || !supabase) { setLoading(false); return }
+    const { data, error: queryError } = await supabase
+      .from('store_orders')
+      .select('id, status, total, fulfillment_type, delivery_address, created_at, stores(name, address), store_order_items(product_name, quantity)')
+      .eq('customer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(30)
+    setOrders(data || [])
+    setError(queryError ? 'Não foi possível atualizar seus pedidos agora.' : '')
+    setLoading(false)
+  }, [user])
+
+  useEffect(() => {
+    const timer = window.setTimeout(loadOrders, 0)
+    if (!user || !supabase) return () => window.clearTimeout(timer)
+    const channel = supabase.channel(`customer-orders-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_orders', filter: `customer_id=eq.${user.id}` }, loadOrders)
+      .subscribe()
+    return () => { window.clearTimeout(timer); supabase.removeChannel(channel) }
+  }, [loadOrders, user])
+
+  if (!user) return <OrdersEmpty user={user} onBrowse={onBrowse} />
+  if (loading) return <div className={styles.ordersLoading}><i /><i /><i /></div>
+  if (!orders.length) return <OrdersEmpty user={user} onBrowse={onBrowse} />
+
+  return <section className={styles.ordersPage}>
+    <header><div><span>Atualização em tempo real</span><h2>Acompanhe seu pedido</h2></div><button onClick={loadOrders}><Icon icon={Spinner} />Atualizar</button></header>
+    {error && <p className={styles.ordersError}>{error}</p>}
+    <div className={styles.customerOrderList}>{orders.map(order => {
+      const state = orderStatus[order.status] || orderStatus.new
+      const items = order.store_order_items || []
+      const addressLabel = order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number].filter(Boolean).join(', ')
+      return <motion.article key={order.id} className={order.status === 'cancelled' ? styles.cancelledOrder : ''} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        <div className={styles.customerOrderTop}><span><Icon icon={Store} /></span><div><small>Pedido #{order.id.slice(0, 6).toUpperCase()}</small><strong>{order.stores?.name || 'TigreFood'}</strong><p>{items.map(item => `${item.quantity}× ${item.product_name}`).join(' · ')}</p></div><b>{money(Number(order.total))}</b></div>
+        <div className={styles.customerOrderStatus}><div><span>{state.label}</span><small>{order.status === 'confirmed' ? 'A loja confirmou e o motorista já recebeu a rota.' : order.status === 'picked_up' ? 'Seu pedido está a caminho.' : order.status === 'delivered' ? 'Entrega concluída.' : 'Acompanhe as próximas atualizações por aqui.'}</small></div><strong>{new Date(order.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</strong></div>
+        {order.fulfillment_type === 'delivery' && addressLabel && <div className={styles.customerOrderAddress}><Icon icon={MapPin} /><span><small>Entrega em</small><strong>{addressLabel}</strong></span></div>}
+        {order.status !== 'cancelled' && <div className={styles.orderProgress} aria-label={`Etapa ${state.step} de 5`}><i style={{ '--order-progress': `${Math.max(8, state.step * 20)}%` }} /></div>}
+      </motion.article>
+    })}</div>
+  </section>
+}
+
 function ProductPage({ product, favorite, onFavorite, onBack, onAdd }) {
   const extras = extrasByCategory[product.category] || extrasByCategory.default
   const [quantity, setQuantity] = useState(1)
@@ -543,22 +601,22 @@ function CartPage({ count, cart, cartExtras, subtotal, deliveryTotal, serviceFee
   </motion.section>
 }
 
-function PaymentPage({ address, subtotal, deliveryTotal, serviceFee, discount, total, fulfillment, onFulfillment, onBack, onAddress, onConfirm }) {
+function PaymentPage({ address, subtotal, deliveryTotal, serviceFee, discount, total, fulfillment, storeName, onFulfillment, onBack, onAddress, onConfirm, loading, error }) {
   const [method, setMethod] = useState('pix')
   const methods = [
     { id: 'pix', icon: QrCode, name: 'Pix', note: 'Confirmação rápida' },
     { id: 'card', icon: CreditCard, name: 'Cartão', note: 'Crédito ou débito' },
     { id: 'cash', icon: Cash, name: 'Dinheiro', note: 'Pague ao receber' },
   ]
-  const selected = methods.find(item => item.id === method)
   return <motion.section className={styles.paymentPage} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} transition={{ duration: .25, ease: [0.22, 1, 0.36, 1] }}>
     <header className={styles.cartPageHeader}><motion.button whileTap={tap} onClick={onBack} aria-label="Voltar para a sacola"><Icon icon={CaretLeft} /></motion.button><div><h1>Pagamento</h1><p>Endereço, forma de pagamento e total</p></div></header>
     <div className={styles.paymentBody}><FulfillmentSwitch value={fulfillment} onChange={onFulfillment} />
-      {fulfillment === 'delivery' ? <section className={styles.paymentSection}><header><h2>Onde entregar</h2><button onClick={onAddress}>{address ? 'Alterar' : 'Adicionar'}</button></header><button className={`${styles.addressChoice} ${!address ? styles.addressMissing : ''}`} onClick={onAddress}><span><Icon icon={MapPin} /></span><div><strong>{address ? address.label : 'Informe seu endereço'}</strong><small>{address ? 'Usaremos este local para calcular o prazo.' : 'Precisamos do local antes de finalizar.'}</small></div><Icon icon={CaretRight} /></button></section> : <section className={styles.paymentSection}><header><h2>Onde retirar</h2></header><div className={styles.pickupChoice}><span><Icon icon={Store} /></span><div><strong>Brasa Burger</strong><small>O endereço e o código de retirada aparecem após confirmar.</small></div></div></section>}
+      {fulfillment === 'delivery' ? <section className={styles.paymentSection}><header><h2>Onde entregar</h2><button onClick={onAddress}>{address ? 'Alterar' : 'Adicionar'}</button></header><button className={`${styles.addressChoice} ${!address ? styles.addressMissing : ''}`} onClick={onAddress}><span><Icon icon={MapPin} /></span><div><strong>{address ? address.label : 'Informe seu endereço'}</strong><small>{address ? 'Usaremos este local para calcular o prazo.' : 'Precisamos do local antes de finalizar.'}</small></div><Icon icon={CaretRight} /></button></section> : <section className={styles.paymentSection}><header><h2>Onde retirar</h2></header><div className={styles.pickupChoice}><span><Icon icon={Store} /></span><div><strong>{storeName}</strong><small>O endereço e o código de retirada aparecem após confirmar.</small></div></div></section>}
       <section className={styles.paymentSection}><header><h2>Como você quer pagar?</h2></header><div className={styles.paymentMethods}>{methods.map(item => <motion.button whileTap={{ scale: .985 }} key={item.id} className={method === item.id ? styles.paymentSelected : ''} aria-pressed={method === item.id} onClick={() => setMethod(item.id)}><span><Icon icon={item.icon} /></span><div><strong>{item.name}</strong><small>{item.note}</small></div><i>{method === item.id && <Icon icon={Check} />}</i></motion.button>)}</div>{method === 'card' && <button className={styles.addPayment}><Icon icon={Plus} />Adicionar cartão</button>}{method === 'cash' && <label className={styles.changeField}>Precisa de troco?<input inputMode="decimal" placeholder="Troco para quanto?" /></label>}</section>
       <section className={`${styles.checkoutSummary} ${styles.paymentSummary}`} aria-label="Valores do pedido"><header><h2>Resumo do pagamento</h2><span>Veja como o total foi calculado</span></header><div><span>Subtotal dos itens</span><strong>{money(subtotal)}</strong></div><div><span>{fulfillment === 'pickup' ? 'Retirada' : 'Entrega'}</span><strong className={deliveryTotal === 0 ? styles.checkoutFree : ''}>{fulfillment === 'pickup' ? 'Sem taxa' : deliveryTotal === 0 ? 'Grátis' : money(deliveryTotal)}</strong></div><div><span>Taxa de serviço</span><strong>{money(serviceFee)}</strong></div>{discount > 0 && <div className={styles.checkoutDiscount}><span>Cupom</span><strong>− {money(discount)}</strong></div>}<div className={styles.checkoutTotal}><span>Total</span><strong>{money(total)}</strong></div></section>
-      <button className={styles.checkoutButton} disabled={fulfillment === 'delivery' && !address} onClick={() => onConfirm(selected.name)}><span>{fulfillment === 'delivery' && !address ? 'Adicione um endereço' : `Continuar com ${selected.name}`}</span><strong>{money(total)} <Icon icon={CaretRight} /></strong></button>
-      <p className={styles.paymentNote}>Você poderá revisar tudo mais uma vez antes de confirmar o pedido.</p>
+      {error && <p className={styles.checkoutError} role="status">{error}</p>}
+      <button className={styles.checkoutButton} disabled={loading || (fulfillment === 'delivery' && !address)} onClick={() => onConfirm(method)}><span>{fulfillment === 'delivery' && !address ? 'Adicione um endereço' : loading ? 'Confirmando pedido…' : 'Confirmar pedido'}</span><strong>{loading ? <Icon className={styles.checkoutSpinner} icon={Spinner} /> : <>{money(total)} <Icon icon={CaretRight} /></>}</strong></button>
+      <p className={styles.paymentNote}>A loja confirma automaticamente neste teste e o motorista recebe a entrega na hora.</p>
     </div>
   </motion.section>
 }
@@ -708,6 +766,7 @@ export function CatalogPage() {
   const [fulfillment, setFulfillment] = useState('delivery')
   const [addressReturn, setAddressReturn] = useState('home')
   const [modal, setModal] = useState(null), [toast, setToast] = useState('')
+  const [placingOrder, setPlacingOrder] = useState(false), [checkoutError, setCheckoutError] = useState('')
   const authUser = account.user
   const chromeRef = useScrollChrome(!reducedMotion && !modal && !['cart', 'payment', 'product', 'address', 'profile'].includes(page), page)
   const results = useRef(null), searchInput = useRef(null)
@@ -738,13 +797,59 @@ export function CatalogPage() {
   }, [category, query, page, favorites, free, fast, sort])
 
   function navigate(next) { setPage(next); setCategory('all'); setQuery(''); setFree(false); setFast(false); setFilters(false); setModal(null); window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' }) }
-  function add(item, amount = 1, extras = []) { setCart(previous => ({ ...previous, [item.id]: Math.min(99, (previous[item.id] || 0) + amount) })); setCartExtras(previous => ({ ...previous, [item.id]: extras.filter(Boolean) })); setToast(`${item.name} adicionado à sacola`) }
+  function add(item, amount = 1, extras = []) {
+    const existing = products.find(product => cart[product.id] > 0)
+    if (existing && existing.shop !== item.shop) {
+      setCart(Object.fromEntries(products.map(product => [product.id, product.id === item.id ? amount : 0])))
+      setCartExtras({ [item.id]: extras.filter(Boolean) })
+      setToast(`Sua sacola agora é de ${item.shop}`)
+      return
+    }
+    setCart(previous => ({ ...previous, [item.id]: Math.min(99, (previous[item.id] || 0) + amount) }))
+    setCartExtras(previous => ({ ...previous, [item.id]: extras.filter(Boolean) }))
+    setToast(`${item.name} adicionado à sacola`)
+  }
   function changeQuantity(id, amount) { setCart(previous => ({ ...previous, [id]: Math.max(0, Math.min(99, (previous[id] || 0) + amount)) })) }
   function toggleFavorite(id) { setFavorites(previous => previous.includes(id) ? previous.filter(value => value !== id) : [...previous, id]) }
   function browse(next = 'all') { setPage('home'); setCategory(next); setQuery(''); setFree(false); setFast(false); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }
   function openProduct(item) { setSelectedProduct(item); setPage('product'); setModal(null); window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' }) }
   function openAddress(returnTo = 'home') { setAddressReturn(returnTo); navigate('address') }
   async function signOut() { if (supabase) await supabase.auth.signOut(); setModal(null); setToast('Você saiu da conta') }
+
+  async function placeOrder(method) {
+    if (!authUser || !supabase || placingOrder) return
+    if (fulfillment === 'delivery' && !address) { setCheckoutError('Informe o endereço de entrega.'); return }
+    const selectedItems = products.filter(item => cart[item.id] > 0)
+    if (!selectedItems.length) { setCheckoutError('Sua sacola está vazia.'); return }
+    const items = selectedItems.map(item => {
+      const extras = Array.isArray(cartExtras[item.id]) ? cartExtras[item.id] : []
+      return { name: item.name, quantity: cart[item.id], unit_price: Number((item.price + extras.reduce((sum, extra) => sum + Number(extra.price || 0), 0)).toFixed(2)), options: extras.map(extra => ({ name: extra.name, price: extra.price })) }
+    })
+    setPlacingOrder(true)
+    setCheckoutError('')
+    const { error } = await supabase.rpc('place_demo_order', {
+      p_store_name: selectedItems[0].shop,
+      p_items: items,
+      p_delivery_address: fulfillment === 'delivery' ? { ...address, recipient_name: account.profile?.full_name || authUser.user_metadata?.full_name || 'Cliente' } : {},
+      p_fulfillment: fulfillment,
+      p_payment_method: method,
+      p_subtotal: Number(subtotal.toFixed(2)),
+      p_delivery_fee: Number(deliveryTotal.toFixed(2)),
+      p_service_fee: Number(serviceFee.toFixed(2)),
+      p_discount: Number(discount.toFixed(2)),
+      p_total: Number(orderTotal.toFixed(2)),
+    })
+    setPlacingOrder(false)
+    if (error) {
+      setCheckoutError(error.message.includes('no_driver_available') ? 'Nenhum motorista de teste está disponível.' : error.message.includes('demo_store_unavailable') ? 'Esta loja de demonstração está fechada.' : 'Não foi possível confirmar o pedido agora.')
+      return
+    }
+    setCart(Object.fromEntries(products.map(product => [product.id, 0])))
+    setCartExtras({})
+    setCouponCode('')
+    navigate('orders')
+    setToast('Pedido confirmado e enviado ao motorista')
+  }
 
   const nav = [{ id: 'home', name: 'Explorar', icon: House }, { id: 'offers', name: 'Ofertas', icon: Tag }, { id: 'favorites', name: 'Favoritos', icon: Heart }, { id: 'orders', name: 'Meus pedidos', icon: Receipt }]
   const heading = page === 'favorites' ? 'Favoritos' : page === 'offers' ? 'Ofertas' : page === 'orders' ? 'Seus pedidos' : page === 'cart' ? 'Sua sacola' : page === 'payment' ? 'Pagamento' : page === 'product' ? selectedProduct.name : page === 'address' ? 'Endereços' : 'Explore o cardápio'
@@ -765,8 +870,8 @@ export function CatalogPage() {
           : page === 'address' ? <AddressPage address={address} onBack={() => navigate(addressReturn)} onSave={value => { setAddress(value); setToast('Endereço salvo'); navigate(addressReturn) }} />
           : page === 'product' ? <ProductPage key={selectedProduct.id} product={selectedProduct} favorite={favorites.includes(selectedProduct.id)} onFavorite={() => toggleFavorite(selectedProduct.id)} onBack={() => navigate('home')} onAdd={(item, amount, extras) => { add(item, amount, extras); navigate('cart') }} />
             : page === 'cart' ? <CartPage count={count} cart={cart} cartExtras={cartExtras} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} couponCode={couponCode} fulfillment={fulfillment} changeQuantity={changeQuantity} browse={browse} onBack={() => navigate('home')} user={authUser} onCoupon={setCouponCode} onFulfillment={setFulfillment} onCheckout={() => navigate('payment')} />
-              : page === 'payment' ? <PaymentPage address={address} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} fulfillment={fulfillment} onFulfillment={setFulfillment} onBack={() => navigate('cart')} onAddress={() => openAddress('payment')} onConfirm={method => setToast(`${method} selecionado para este pedido`)} />
-                : page !== 'orders' ? <><CategoryCarousel value={category} onChange={setCategory} /><section ref={results} className={styles.results} aria-label="Cardápio"><div className={styles.sectionHeading}><div><h2>{sectionTitle}</h2><p>{visible.length} {visible.length === 1 ? 'opção' : 'opções'}</p></div><motion.button whileTap={tap} className={`${styles.filterButton} ${filters ? styles.filterActive : ''}`} onClick={() => setFilters(!filters)} aria-expanded={filters}><Icon icon={SlidersHorizontal} />Filtros{(free || fast) && <b>{Number(free) + Number(fast)}</b>}</motion.button></div><div className={`${styles.filterRow} ${filters ? styles.filtersExpanded : ''}`}><motion.button whileTap={tap} className={free ? styles.chipActive : ''} aria-pressed={free} onClick={() => setFree(!free)}>Entrega grátis</motion.button><motion.button whileTap={tap} className={fast ? styles.chipActive : ''} aria-pressed={fast} onClick={() => setFast(!fast)}><Icon className={styles.filterBolt} icon={Lightning} />Até 30 min</motion.button><SortControl value={sort} onChange={setSort} /></div><AnimatePresence mode="popLayout">{visible.length ? <CatalogSections items={visible} discovery={discovery} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} add={add} browse={browse} /> : <motion.div className={styles.empty} initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}><Icon icon={page === 'favorites' ? Heart : MagnifyingGlass} /><h3>{page === 'favorites' && !favorites.length ? 'Nenhum favorito salvo.' : 'Não encontramos essa combinação.'}</h3><p>{page === 'favorites' && !favorites.length ? 'Toque no coração de um prato para encontrá-lo aqui depois.' : 'Experimente outro nome ou remova alguns filtros.'}</p><button onClick={() => navigate('home')}>Explorar o cardápio<Icon icon={ArrowRight} /></button></motion.div>}</AnimatePresence></section></> : <OrdersEmpty user={authUser} onBrowse={() => navigate('home')} />}
+              : page === 'payment' ? <PaymentPage address={address} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} fulfillment={fulfillment} storeName={products.find(item => cart[item.id] > 0)?.shop || 'Brasa Burger'} onFulfillment={setFulfillment} onBack={() => navigate('cart')} onAddress={() => openAddress('payment')} onConfirm={placeOrder} loading={placingOrder} error={checkoutError} />
+                : page !== 'orders' ? <><CategoryCarousel value={category} onChange={setCategory} /><section ref={results} className={styles.results} aria-label="Cardápio"><div className={styles.sectionHeading}><div><h2>{sectionTitle}</h2><p>{visible.length} {visible.length === 1 ? 'opção' : 'opções'}</p></div><motion.button whileTap={tap} className={`${styles.filterButton} ${filters ? styles.filterActive : ''}`} onClick={() => setFilters(!filters)} aria-expanded={filters}><Icon icon={SlidersHorizontal} />Filtros{(free || fast) && <b>{Number(free) + Number(fast)}</b>}</motion.button></div><div className={`${styles.filterRow} ${filters ? styles.filtersExpanded : ''}`}><motion.button whileTap={tap} className={free ? styles.chipActive : ''} aria-pressed={free} onClick={() => setFree(!free)}>Entrega grátis</motion.button><motion.button whileTap={tap} className={fast ? styles.chipActive : ''} aria-pressed={fast} onClick={() => setFast(!fast)}><Icon className={styles.filterBolt} icon={Lightning} />Até 30 min</motion.button><SortControl value={sort} onChange={setSort} /></div><AnimatePresence mode="popLayout">{visible.length ? <CatalogSections items={visible} discovery={discovery} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} add={add} browse={browse} /> : <motion.div className={styles.empty} initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}><Icon icon={page === 'favorites' ? Heart : MagnifyingGlass} /><h3>{page === 'favorites' && !favorites.length ? 'Nenhum favorito salvo.' : 'Não encontramos essa combinação.'}</h3><p>{page === 'favorites' && !favorites.length ? 'Toque no coração de um prato para encontrá-lo aqui depois.' : 'Experimente outro nome ou remova alguns filtros.'}</p><button onClick={() => navigate('home')}>Explorar o cardápio<Icon icon={ArrowRight} /></button></motion.div>}</AnimatePresence></section></> : <OrdersPage user={authUser} onBrowse={() => navigate('home')} />}
         {!['cart', 'payment', 'product', 'address', 'profile'].includes(page) && <footer className={styles.footer}><strong>TigreFood</strong><p>Fotos ilustrativas · Lojas, preços e prazos de demonstração.</p><button onClick={() => setModal({ type: 'help' })}>Ajuda e informações<Icon icon={ArrowRight} /></button></footer>}
       </motion.div></AnimatePresence></main>
     </div>
