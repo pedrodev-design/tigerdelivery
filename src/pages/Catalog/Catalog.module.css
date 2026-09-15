@@ -230,7 +230,7 @@
 .detailActions .primary { flex: 1; }
 .cartDialog { top: 0; right: 0; left: auto; translate: 0; height: 100svh; max-height: 100svh; width: min(460px, 100vw); border-radius: 24px 0 0 24px; background: #fff; }
 .workspace:has(.cartPage) > .topbar, .workspace:has(.paymentPage) > .topbar, .workspace:has(.productPage) > .topbar, .workspace:has(.addressPage) > .topbar { display: none; }
-.main:has(.cartPage), .main:has(.paymentPage), .main:has(.productPage), .main:has(.addressPage) { max-width: none; padding: 0; }
+.main:has(.cartPage), .main:has(.paymentPage), .main:has(.productPage), .main:has(.addressPage), .main:has(.profilePage) { max-width: none; padding: 0; }
 .layout:has(.cartPage) .bottomNav, .layout:has(.paymentPage) .bottomNav, .layout:has(.productPage) .bottomNav, .layout:has(.addressPage) .bottomNav { display: none; }
 .layout:has(.cartPage) .sidebar, .layout:has(.paymentPage) .sidebar, .layout:has(.productPage) .sidebar, .layout:has(.addressPage) .sidebar { display: none; }
 .layout:has(.cartPage) .workspace, .layout:has(.paymentPage) .workspace, .layout:has(.productPage) .workspace, .layout:has(.addressPage) .workspace { margin-left: 0; }
@@ -453,10 +453,43 @@
 .dialogContent summary { font-size: 13px; font-weight: 600; cursor: pointer; }
 .dialogContent details p { font-size: 12px; color: #868d75; line-height: 1.7; margin-top: 13px; }
 .profileHero { display: flex; align-items: center; gap: 14px; min-height: 70px; padding: 0 46px 20px 0; box-shadow: inset 0 -1px #ecebe6; }
-.profileAvatar { display: grid; place-items: center; flex: 0 0 50px; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: #ecebe6; color: #242424; font-size: 18px; }
+.profileAvatarWrap { position: relative; flex: 0 0 50px; width: 50px; height: 50px; }
+.profileAvatar { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: #ecebe6; color: #242424; font-size: 18px; }
 .profileAvatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+.profileAvatarEdit { position: absolute; right: -4px; bottom: -3px; display: grid; place-items: center; width: 23px; height: 23px; border: 2px solid #fff; border-radius: 50%; background: #ffda00; color: #242424; font-size: 9px; cursor: pointer; transition: transform .18s ease, background .18s ease; }
+.profileAvatarEdit:hover { transform: translateY(-1px); background: #f4ce00; }
+.profileAvatarEdit input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.profileHeroCopy { min-width: 0; flex: 1; }
 .profileHero h2 { margin: 0 0 4px; font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -.35px; }
 .profileHero p { overflow: hidden; color: #777; font-size: 11px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.profileEditButton { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; min-height: 32px; padding: 0 11px; border: 0; border-radius: 9px; background: #ffda00; color: #242424; font-size: 10px; font-weight: 750; transition: background .18s ease, transform .18s ease; }
+.profileEditButton:hover { background: #f3cf00; transform: translateY(-1px); }
+.profileEditButton svg { width: 9px; color: #242424; }
+.profileFacts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+.profileFacts > div { display: grid; gap: 4px; min-width: 0; padding: 10px 11px; border-radius: 11px; background: #f7f6f0; }
+.profileFacts span { color: #8c8d84; font-size: 9px; }
+.profileFacts strong { overflow: hidden; color: #34352f; font-size: 11px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.profileEditor { display: grid; gap: 12px; margin: 17px 0 2px; padding: 15px; border: 1px solid #ece9dc; border-radius: 15px; background: #fbfaf5; }
+.profileEditorHeading { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 4px; }
+.profileEditorHeading > div { display: grid; gap: 3px; }
+.profileEditorHeading strong { color: #252621; font-size: 13px; }
+.profileEditorHeading span { color: #888980; font-size: 10px; }
+.profileEditorBadge { display: inline-flex; align-items: center; gap: 4px; color: #65834f !important; font-size: 9px !important; font-weight: 700; white-space: nowrap; }
+.profileEditorBadge svg { width: 9px; }
+.profileField { display: grid; gap: 6px; color: #50514a; font-size: 10px; font-weight: 700; }
+.profileField input { width: 100%; min-height: 40px; padding: 0 11px; border: 1px solid #e4e2d6; border-radius: 9px; outline: 0; background: #fff; color: #242424; font: inherit; font-size: 12px; font-weight: 500; }
+.profileField input:focus { border-color: #d4ba2e; box-shadow: 0 0 0 3px #ffda0033; }
+.profileField em { color: #999a91; font-size: 9px; font-style: normal; font-weight: 500; }
+.profileReadOnly { display: grid; gap: 3px; padding: 2px 0; color: #77786f; font-size: 10px; }
+.profileReadOnly strong { overflow: hidden; color: #33342e; font-size: 11px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.profileReadOnly small { color: #a0a097; font-size: 9px; }
+.profileNotice { margin: 2px 0 0; color: #8a7421; font-size: 10px; line-height: 1.4; }
+.profileEditorActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.profileEditorActions button { min-height: 36px; padding: 0 12px; border-radius: 9px; font-size: 10px; font-weight: 700; }
+.profileCancel { border: 1px solid #e1dfd4; background: #fff; color: #64655d; }
+.profileSave { display: inline-flex; align-items: center; gap: 7px; border: 0; background: #ffda00; color: #242424; }
+.profileSave svg { width: 10px; }
+.profileSave:disabled, .profileCancel:disabled { cursor: wait; opacity: .6; }
 .profileAuth { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 20px 0 5px; }
 .profileAuth a, .profileAuth button { display: grid; place-items: center; min-height: 44px; border: 0; border-radius: 12px; font-size: 12px; font-weight: 700; text-decoration: none; }
 .profileAuthSigned { grid-template-columns: 1fr; }
@@ -480,6 +513,26 @@
 .profileList > button > span svg, .profileList > a > span svg { width: 17px; color: #555; }
 .profileList > button > svg, .profileList > a > svg { width: 8px; color: #999; }
 .profileLogout { display: block; margin: 18px auto 0; padding: 8px 12px; border: 0; background: transparent; color: #777; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.profileWorkspace .topbar { display: none; }
+.profileWorkspace .main { min-height: 100svh; padding-top: 0; }
+.profilePage { width: 100%; min-height: 100svh; margin: 0; background: #f7f6f1; }
+.profilePageHeader { position: sticky; z-index: 5; top: 0; display: flex; align-items: center; gap: 16px; min-height: 104px; padding: 22px clamp(28px, 5vw, 72px); background: #ffda00; }
+.profilePageHeader > button { display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 50%; background: #fff; color: #242424; cursor: pointer; }
+.profilePageHeader > div { flex: 1; }
+.profilePageHeader small { display: block; margin-bottom: 4px; color: #655a13; font-size: 9px; font-weight: 750; }
+.profilePageHeader h1 { font-family: var(--font-display); font-size: 24px; letter-spacing: -.04em; }
+.profilePageHeader > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #242424; color: #ffda00; }
+.profilePageBody { width: min(100%, 680px); margin: 0 auto; padding: 36px 24px 80px; }
+.profilePageBody .profileHero { min-height: 84px; padding-right: 0; }
+.profilePageBody .profileAvatar { width: 64px; height: 64px; }
+.profilePageBody .profileAvatarWrap { flex-basis: 64px; width: 64px; height: 64px; }
+.profilePageBody .profileAvatarEdit { width: 26px; height: 26px; font-size: 10px; }
+.profilePageBody .profileHero h2 { font-size: 25px; }
+.profilePageBody .profileHero p { font-size: 12px; }
+.profilePageBody .profileEditor { margin-top: 23px; padding: 20px; border-radius: 18px; background: #fff; }
+.profilePageBody .profileFacts { margin-top: 22px; }
+.profilePageBody .profileList { margin-top: 26px; padding: 0 14px; border-radius: 16px; background: #fff; }
+.profilePageBody .profilePartner { margin-top: 24px; background: #fff; }
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 65px 20px; text-align: center; background: #fafafa; border: 1px solid #eee; border-radius: 10px; }
 .empty > svg { font-size: 32px; color: #d0ba58; margin-bottom: 23px; }
 .empty h3, .empty h2 { font-family: var(--font-display); font-size: 21px; font-weight: 680; letter-spacing: -.35px; }
@@ -528,7 +581,7 @@
 @media (max-width: 600px) {
   .layout { background: #fff; }
   .pageContent { display: flex; flex-direction: column; }
-  .topbar { height: 146px; min-height: 0; padding: 17px 18px 81px; gap: 11px; display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; background-color: #fff; background-image: linear-gradient(#ffda00, #ffda00); background-repeat: no-repeat; background-size: 100% 100%; border: 0; overflow: hidden; transition: padding 380ms cubic-bezier(.22, 1, .36, 1), background-size 380ms cubic-bezier(.22, 1, .36, 1), box-shadow 260ms ease; }
+  .topbar { height: 146px; min-height: 0; padding: 17px 18px 81px; gap: 11px; display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; background-color: #fff; background-image: linear-gradient(#ffda00, #ffda00); background-repeat: no-repeat; background-size: 100% 100%; border: 0; overflow: hidden; transition: height 380ms cubic-bezier(.22, 1, .36, 1), padding 380ms cubic-bezier(.22, 1, .36, 1), background-size 380ms cubic-bezier(.22, 1, .36, 1), box-shadow 260ms ease; }
   .menuButton { width: 48px; height: 48px; padding: 0; overflow: hidden; border-radius: 50%; background: #fff; color: #242424; border: 0; box-shadow: none; font-size: 17px; }
   .bag { grid-column: 3; grid-row: 1; width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 0; position: relative; background: transparent; color: #242424; border: 0; box-shadow: none; font-size: 21px; }
   .bag > span { display: none; }
@@ -546,10 +599,10 @@
   .mobileFilter { display: none; }
   .mobileFilter[aria-expanded="true"] { background: #242424; color: #fff; }
   .mobileFilter i { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; background: #d45a17; border-radius: 50%; }
-  .layout[data-compact-header="true"] .topbar { padding-top: 12px; padding-bottom: 86px; pointer-events: none; background-size: 100% 72px; box-shadow: none; }
+  .layout[data-compact-header="true"] .topbar { height: 72px; min-height: 72px; padding-top: 12px; padding-bottom: 12px; pointer-events: none; background-size: 100% 100%; box-shadow: none; }
   .layout[data-compact-header="true"] .topbar .menuButton, .layout[data-compact-header="true"] .topbar .bag, .layout[data-compact-header="true"] .topbar .search { pointer-events: auto; }
   .layout[data-compact-header="true"] .topbar .address { opacity: 0; transform: translateY(-9px); pointer-events: none; }
-  .layout[data-compact-header="true"] .topbar .search { right: 76px; bottom: 86px; left: 77px; height: 48px; border-radius: 15px; }
+  .layout[data-compact-header="true"] .topbar .search { right: 76px; bottom: 12px; left: 77px; height: 48px; border-radius: 15px; }
   .layout[data-compact-header="true"] .topbar .search input { font-size: 14px; }
   .layout[data-compact-header="true"] .topbar .search input::placeholder { font-size: 13px; }
   .main { padding: 16px 18px calc(112px + env(safe-area-inset-bottom)); }
@@ -751,9 +804,23 @@
   .stepper button { width: 32px; height: 36px; }
   .addressForm input { font-size: 16px; }
   .profileHero { align-items: flex-start; }
+  .profileAvatarWrap { flex-basis: 48px; width: 48px; height: 48px; }
   .profileAvatar { flex-basis: 48px; width: 48px; height: 48px; }
   .profileHero h2 { font-size: 20px; }
   .profileHero p { font-size: 12px; }
+  .profileEditButton { min-height: 34px; font-size: 11px; }
+  .profileEditor { padding: 14px; }
+  .profileField input { min-height: 44px; font-size: 13px; }
+  .profileEditorActions button { min-height: 42px; font-size: 11px; }
+  .profilePage { margin: 0; }
+  .profilePageHeader { min-height: 88px; padding: 16px 18px; gap: 13px; }
+  .profilePageHeader > button { width: 42px; height: 42px; flex-basis: 42px; }
+  .profilePageHeader h1 { font-size: 22px; }
+  .profilePageBody { padding: 26px 18px 70px; }
+  .profilePageBody .profileHero { min-height: 72px; }
+  .profilePageBody .profileAvatar, .profilePageBody .profileAvatarWrap { width: 56px; height: 56px; flex-basis: 56px; }
+  .profilePageBody .profileHero h2 { font-size: 21px; }
+  .profilePageBody .profileEditor { padding: 15px; }
   .profileAuth a, .profileAuth button { min-height: 46px; font-size: 14px; }
   .profileList > button, .profileList > a { min-height: 54px; font-size: 14px; }
   .empty { background: #efede7; padding: 45px 18px; border: 0; }

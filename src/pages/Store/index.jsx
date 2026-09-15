@@ -21,7 +21,7 @@ import {
   faUser,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
 import { useStoreAccount } from '../../hooks/useStoreAccount'
 import { formatPhone, onlyDigits } from '../../utils/validators'
@@ -46,23 +46,36 @@ function StoreApplication({ account, onSent }) {
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState('')
+  const [step, setStep] = useState(1)
   const update = (name, value) => { const next = name === 'cnpj' ? formatCnpj(value) : name === 'phone' ? formatPhone(value) : value; setValues(previous => ({ ...previous, [name]: next })); setErrors(previous => ({ ...previous, [name]: '' })) }
+  const validate = currentStep => {
+    const next = {}
+    if (currentStep === 1 && values.name.trim().length < 2) next.name = 'Informe o nome da loja.'
+    if (currentStep === 2 && onlyDigits(values.cnpj).length !== 14) next.cnpj = 'Informe um CNPJ válido.'
+    if (currentStep === 2 && !/^\d{10,11}$/.test(onlyDigits(values.phone))) next.phone = 'Informe um telefone com DDD.'
+    if (currentStep === 3 && values.city.trim().length < 2) next.city = 'Informe a cidade da loja.'
+    setErrors(next)
+    return !Object.keys(next).length
+  }
+  const nextStep = () => { setNotice(''); if (validate(step)) setStep(current => Math.min(3, current + 1)) }
+  const previousStep = () => { setNotice(''); setErrors({}); setStep(current => Math.max(1, current - 1)) }
   async function submit(event) {
     event.preventDefault()
-    const next = {}
-    if (values.name.trim().length < 2) next.name = 'Informe o nome da loja.'
-    if (onlyDigits(values.cnpj).length !== 14) next.cnpj = 'Informe um CNPJ válido.'
-    if (!/^\d{10,11}$/.test(onlyDigits(values.phone))) next.phone = 'Informe um telefone com DDD.'
-    if (values.city.trim().length < 2) next.city = 'Informe a cidade da loja.'
-    setErrors(next); setNotice('')
-    if (Object.keys(next).length) return
+    if (!validate(3)) return
     setLoading(true)
     const { error } = await supabase.rpc('submit_store_application', { p_name: values.name.trim(), p_category: values.category, p_cnpj: onlyDigits(values.cnpj), p_phone: onlyDigits(values.phone), p_city: values.city.trim(), p_address: values.address.trim() || null, p_description: values.description.trim() || null })
     setLoading(false)
     if (error) { setNotice(error.message.includes('cnpj_already_registered') ? 'Esse CNPJ já está cadastrado.' : 'Não foi possível enviar agora. Confira os dados e tente novamente.'); return }
     await account.refresh(); onSent()
   }
-  return <Shell><section className={styles.application}><div className={styles.applicationIntro}><p className={styles.kicker}>Venda com a TigreFood</p><h1>Sua loja.<br />Mais pedidos.</h1><p>Cadastre seu negócio para aparecer no catálogo e receber pedidos de clientes da sua região.</p><div className={styles.promise}><span><Icon icon={faReceipt} /></span><div><strong>Operação simples</strong><small>Você controla o cardápio e os horários.</small></div></div><div className={styles.promise}><span><Icon icon={faUser} /></span><div><strong>Equipe por perto</strong><small>Conte com suporte quando precisar.</small></div></div></div><form onSubmit={submit} noValidate><div className={styles.formHeader}><span><Icon icon={faStore} /></span><div><h2>Cadastre sua loja</h2><p>A análise é feita pela equipe TigreFood.</p></div></div><label className={errors.name ? styles.invalid : ''}><span>Nome da loja</span><input value={values.name} onChange={event => update('name', event.target.value)} placeholder="Ex.: Brasa Burger" autoComplete="organization" />{errors.name && <small>{errors.name}</small>}</label><div className={styles.formRow}><label><span>Categoria</span><select value={values.category} onChange={event => update('category', event.target.value)}>{categories.map(item => <option key={item}>{item}</option>)}</select></label><label className={errors.cnpj ? styles.invalid : ''}><span>CNPJ</span><input value={values.cnpj} onChange={event => update('cnpj', event.target.value)} placeholder="00.000.000/0000-00" inputMode="numeric" />{errors.cnpj && <small>{errors.cnpj}</small>}</label></div><label className={errors.phone ? styles.invalid : ''}><span>Telefone para pedidos</span><input value={values.phone} onChange={event => update('phone', event.target.value)} placeholder="(11) 99999-9999" inputMode="tel" />{errors.phone && <small>{errors.phone}</small>}</label><div className={styles.formRow}><label className={errors.city ? styles.invalid : ''}><span>Cidade</span><input value={values.city} onChange={event => update('city', event.target.value)} placeholder="Sua cidade" />{errors.city && <small>{errors.city}</small>}</label><label><span>Endereço (opcional)</span><input value={values.address} onChange={event => update('address', event.target.value)} placeholder="Rua, número e bairro" /></label></div><label><span>Conte um pouco sobre a loja <em>opcional</em></span><textarea value={values.description} onChange={event => update('description', event.target.value.slice(0, 500))} placeholder="O que seus clientes encontram por aqui?" /><small className={styles.counter}>{values.description.length}/500</small></label>{notice && <p className={styles.notice}>{notice}</p>}<button className={styles.submit} disabled={loading}>{loading ? <><i className={styles.spinner} />Enviando cadastro</> : <>Enviar para análise<Icon icon={faArrowRight} /></>}</button><p className={styles.formNote}><Icon icon={faIdCard} /> Seus dados comerciais ficam protegidos e são usados apenas na análise da loja.</p></form><AnimatePresence>{loading && <LoadingOverlay label="Quase lá" detail="Enviando os dados da sua loja." />}</AnimatePresence></section></Shell>
+  const steps = [{ label: 'A loja', title: 'Vamos começar pela sua loja', text: 'Conte o básico para encontrarmos o melhor lugar para o seu negócio.' }, { label: 'Contato', title: 'Como falamos com você?', text: 'Esses dados ajudam nossa equipe a confirmar o cadastro.' }, { label: 'Local', title: 'Onde sua loja funciona?', text: 'No final, confira tudo antes de enviar para análise.' }]
+  const current = steps[step - 1]
+  return <Shell><section className={`${styles.application} ${styles.applicationSingle}`}><div className={styles.applicationStage}><div><p className={styles.kicker}>Cadastro de parceiro</p><h1>{current.title}</h1><p>{current.text}</p></div><div className={styles.stepProgress} aria-label={`Etapa ${step} de 3`}>{steps.map((item, index) => <div key={item.label} className={index + 1 <= step ? styles.stepActive : ''}><span>{index + 1}</span><small>{item.label}</small></div>)}</div></div><form className={styles.applicationForm} onSubmit={submit} noValidate><AnimatePresence mode="wait" initial={false}><motion.div key={step} className={styles.stepPanel} initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: .2, ease: 'easeOut' }}>
+    {step === 1 && <><div className={styles.formHeader}><span><Icon icon={faStore} /></span><div><h2>Sobre o negócio</h2><p>Você poderá completar o cardápio depois.</p></div></div><label className={errors.name ? styles.invalid : ''}><span>Nome da loja</span><input value={values.name} onChange={event => update('name', event.target.value)} placeholder="Ex.: Brasa Burger" autoComplete="organization" autoFocus />{errors.name && <small>{errors.name}</small>}</label><label><span>Categoria principal</span><select value={values.category} onChange={event => update('category', event.target.value)}>{categories.map(item => <option key={item}>{item}</option>)}</select></label></>}
+    {step === 2 && <><div className={styles.formHeader}><span><Icon icon={faIdCard} /></span><div><h2>Dados comerciais</h2><p>Usados somente para a análise da loja.</p></div></div><label className={errors.cnpj ? styles.invalid : ''}><span>CNPJ</span><input value={values.cnpj} onChange={event => update('cnpj', event.target.value)} placeholder="00.000.000/0000-00" inputMode="numeric" autoFocus />{errors.cnpj && <small>{errors.cnpj}</small>}</label><label className={errors.phone ? styles.invalid : ''}><span>Telefone para pedidos</span><input value={values.phone} onChange={event => update('phone', event.target.value)} placeholder="(11) 99999-9999" inputMode="tel" autoComplete="tel" />{errors.phone && <small>{errors.phone}</small>}</label><p className={styles.formNote}><Icon icon={faUser} /> A equipe pode entrar em contato para confirmar os dados.</p></>}
+    {step === 3 && <><div className={styles.formHeader}><span><Icon icon={faStore} /></span><div><h2>Local e apresentação</h2><p>Ajude os clientes a reconhecerem seu negócio.</p></div></div><label className={errors.city ? styles.invalid : ''}><span>Cidade</span><input value={values.city} onChange={event => update('city', event.target.value)} placeholder="Sua cidade" autoFocus />{errors.city && <small>{errors.city}</small>}</label><label><span>Endereço <em>opcional</em></span><input value={values.address} onChange={event => update('address', event.target.value)} placeholder="Rua, número e bairro" /></label><label><span>Sobre a loja <em>opcional</em></span><textarea value={values.description} onChange={event => update('description', event.target.value.slice(0, 500))} placeholder="O que seus clientes encontram por aqui?" /><small className={styles.counter}>{values.description.length}/500</small></label><div className={styles.reviewCard}><small>Você está cadastrando</small><strong>{values.name || 'Sua loja'}</strong><span>{values.category} · {values.city || 'Cidade a informar'}</span></div></>}
+    {notice && <p className={styles.notice}>{notice}</p>}
+  </motion.div></AnimatePresence><div className={styles.stepActions}>{step > 1 && <button type="button" className={styles.stepBack} onClick={previousStep}>Voltar</button>}{step < 3 ? <button type="button" className={styles.submit} onClick={nextStep}>Continuar<Icon icon={faArrowRight} /></button> : <button className={styles.submit} disabled={loading}>{loading ? <><i className={styles.spinner} />Enviando cadastro</> : <>Enviar para análise<Icon icon={faArrowRight} /></>}</button>}</div><p className={styles.formNote}><Icon icon={faIdCard} /> Seus dados comerciais ficam protegidos e usados somente nesta análise.</p></form><AnimatePresence>{loading && <LoadingOverlay label="Quase lá" detail="Enviando os dados da sua loja." />}</AnimatePresence></section></Shell>
 }
 
 function StoreStatus({ store, onEdit }) {

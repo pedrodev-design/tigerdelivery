@@ -13,6 +13,26 @@
 .centerState a, .darkAction, .primaryAction { display: inline-flex; align-items: center; justify-content: center; gap: 16px; min-height: 52px; margin-top: 28px; padding: 0 22px; border: 0; border-radius: 14px; background: #20211d; color: #fff; font-size: 13px; font-weight: 750; text-decoration: none; cursor: pointer; }
 .kicker { color: #907b00; font-size: 10px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
 .application { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(400px, 1.2fr); gap: clamp(40px, 7vw, 110px); width: min(100%, 1120px); margin: 0 auto; padding: 62px clamp(20px, 5vw, 64px) 90px; }
+.applicationSingle { display: block; width: min(100%, 760px); padding-top: 54px; }
+.applicationStage { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; margin-bottom: 28px; }
+.applicationStage h1 { max-width: 580px; margin-top: 12px; font-family: var(--font-display); font-size: clamp(34px, 5vw, 55px); line-height: .98; letter-spacing: -.06em; }
+.applicationStage > div:first-child > p:last-child { max-width: 450px; margin-top: 14px; color: #74766d; font-size: 13px; line-height: 1.6; }
+.stepProgress { display: flex; align-items: flex-start; gap: 15px; flex: 0 0 auto; padding-bottom: 4px; }
+.stepProgress > div { position: relative; display: grid; justify-items: center; gap: 6px; min-width: 48px; color: #a0a198; }
+.stepProgress > div:not(:last-child)::after { position: absolute; top: 12px; left: calc(50% + 16px); width: 30px; height: 1px; background: #dcdcd4; content: ''; }
+.stepProgress > div > span { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #e5e5de; font-size: 10px; font-weight: 800; }
+.stepProgress > div > small { font-size: 9px; font-weight: 700; }
+.stepProgress .stepActive { color: #746000; }
+.stepProgress .stepActive > span { background: #ffda00; color: #20211d; }
+.applicationForm { position: relative; }
+.stepPanel { min-height: 350px; }
+.stepActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
+.stepActions .submit { margin-top: 0; max-width: 230px; }
+.stepBack { min-height: 52px; padding: 0 16px; border: 1px solid #e1e1d8; border-radius: 14px; background: #fff; color: #5f6158; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.reviewCard { display: grid; gap: 5px; margin-top: 20px; padding: 16px; border-radius: 15px; background: #f7f6ef; }
+.reviewCard small { color: #8a8c83; font-size: 9px; }
+.reviewCard strong { font-family: var(--font-display); font-size: 18px; }
+.reviewCard span { color: #777970; font-size: 11px; }
 .applicationIntro { align-self: start; position: sticky; top: 136px; }
 .applicationIntro h1 { margin-top: 14px; font-family: var(--font-display); font-size: clamp(39px, 5vw, 64px); line-height: .98; letter-spacing: -.06em; }
 .applicationIntro > p:not(.kicker) { max-width: 390px; margin-top: 20px; color: #74766d; font-size: 14px; line-height: 1.65; }
@@ -144,6 +164,12 @@
 @keyframes shimmer { to { background-position: -200% 0; } }
 @media (max-width: 820px) {
   .application { grid-template-columns: 1fr; gap: 30px; padding-top: 36px; }
+  .applicationSingle { display: block; padding-top: 34px; }
+  .applicationStage { display: grid; align-items: start; gap: 22px; }
+  .applicationStage h1 { font-size: 42px; }
+  .stepProgress { justify-content: space-between; width: 100%; }
+  .stepProgress > div { flex: 1; }
+  .stepProgress > div:not(:last-child)::after { width: calc(100% - 28px); }
   .applicationIntro { position: static; }
   .applicationIntro h1 { font-size: 44px; }
   .sidebar { position: static; width: 100%; height: 70px; flex-direction: row; align-items: center; padding: 0 16px; }
@@ -171,6 +197,9 @@
   .header > a, .header > span { width: 36px; height: 36px; }
   .header strong { font-size: 16px; }
   .application form { padding: 21px 17px; }
+  .applicationStage h1 { font-size: 35px; }
+  .stepPanel { min-height: 330px; }
+  .stepActions .submit { max-width: none; }
   .formRow { grid-template-columns: 1fr; gap: 0; }
   .topbar { gap: 10px; }
   .topbar p { display: none; }

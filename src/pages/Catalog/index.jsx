@@ -5,6 +5,7 @@ import {
   faBagShopping as Bag,
   faBookmark as BookmarkSolid,
   faBolt as Lightning,
+  faCamera as Camera,
   faCheck as Check,
   faChevronDown as CaretDown,
   faChevronLeft as CaretLeft,
@@ -21,6 +22,7 @@ import {
   faMinus as Minus,
   faMoneyBillWave as Cash,
   faMotorcycle as Motorcycle,
+  faPen as Pen,
   faPlus as Plus,
   faQrcode as QrCode,
   faReceipt as Receipt,
@@ -47,7 +49,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { Circle, CircleMarker, MapContainer, TileLayer, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { categories, products, money } from './data'
-import { supabase } from '../../lib/supabase'
+import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { useAccount } from '../../hooks/useAccount'
 import styles from './Catalog.module.css'
 import allCategory from '../../assets/icons/tudo-icon.png'
@@ -561,14 +563,133 @@ function PaymentPage({ address, subtotal, deliveryTotal, serviceFee, discount, t
   </motion.section>
 }
 
+function ProfilePanel({ modal, setModal, fullPage = false }) {
+  const metadata = modal.user?.user_metadata || {}
+  const profile = modal.account?.profile || {}
+  const initialName = profile.full_name || metadata.full_name || modal.user?.email?.split('@')[0] || ''
+  const initialAvatar = profile.avatar_url || metadata.avatar_url || ''
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState(initialName)
+  const [phone, setPhone] = useState(metadata.phone || modal.account?.application?.phone || '')
+  const [avatar, setAvatar] = useState(initialAvatar)
+  const [saving, setSaving] = useState(false)
+  const [notice, setNotice] = useState('')
+
+  const chooseAvatar = event => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setNotice('Escolha uma imagem JPG, PNG ou WebP.')
+      return
+    }
+    setEditing(true)
+    const reader = new FileReader()
+    reader.onload = () => {
+      const image = new window.Image()
+      image.onload = () => {
+        const size = 320
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = size
+        const context = canvas.getContext('2d')
+        const scale = Math.max(size / image.width, size / image.height)
+        const width = image.width * scale
+        const height = image.height * scale
+        context.drawImage(image, (size - width) / 2, (size - height) / 2, width, height)
+        setAvatar(canvas.toDataURL('image/jpeg', .82))
+        setNotice('Foto pronta. Salve para aplicar no seu perfil.')
+      }
+      image.src = reader.result
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const save = async () => {
+    const cleanName = name.trim()
+    if (!cleanName) {
+      setNotice('Digite seu nome para continuar.')
+      return
+    }
+    setSaving(true)
+    setNotice('Salvando seus dados…')
+    try {
+      if (isSupabaseConfigured && supabase && modal.user) {
+        const { data: authData, error: authError } = await supabase.auth.updateUser({
+          data: { full_name: cleanName, avatar_url: avatar || null, phone: phone.trim() || null },
+        })
+        if (authError) throw authError
+        const { error: profileError } = await supabase.from('profiles').update({ full_name: cleanName, avatar_url: avatar || null }).eq('id', modal.user.id)
+        if (profileError) throw profileError
+        await modal.refresh?.()
+        const updatedUser = authData.user || modal.user
+        if (!fullPage) setModal({
+          ...modal,
+          user: { ...updatedUser, user_metadata: { ...updatedUser.user_metadata, full_name: cleanName, avatar_url: avatar || null, phone: phone.trim() || null } },
+          account: { ...modal.account, profile: { ...profile, full_name: cleanName, avatar_url: avatar || null } },
+        })
+      } else {
+        localStorage.setItem('tigre-profile-draft', JSON.stringify({ full_name: cleanName, phone: phone.trim(), avatar_url: avatar }))
+      }
+      setEditing(false)
+      setNotice('Perfil atualizado.')
+    } catch (error) {
+      setNotice(error?.message || 'Não foi possível salvar agora. Tente novamente.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const cancel = () => {
+    setName(initialName)
+    setPhone(metadata.phone || modal.account?.application?.phone || '')
+    setAvatar(initialAvatar)
+    setNotice('')
+    setEditing(false)
+  }
+
+  return <>
+    <div className={styles.profileHero}>
+      <div className={styles.profileAvatarWrap}>
+        <span className={styles.profileAvatar}>{avatar ? <img src={avatar} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</span>
+        {modal.user && <label className={styles.profileAvatarEdit} title="Mudar foto"><Icon icon={Camera} /><input type="file" accept="image/*" onChange={chooseAvatar} /></label>}
+      </div>
+      <div className={styles.profileHeroCopy}>{fullPage ? <h2>{modal.user ? (name || initialName) : 'Sua conta'}</h2> : <Dialog.Title asChild><h2>{modal.user ? (name || initialName) : 'Sua conta'}</h2></Dialog.Title>}{fullPage ? <p>{modal.user ? modal.user.email : 'Entre para acompanhar pedidos e salvar seus dados.'}</p> : <Dialog.Description>{modal.user ? modal.user.email : 'Entre para acompanhar pedidos e salvar seus dados.'}</Dialog.Description>}</div>
+      {modal.user && <button className={styles.profileEditButton} onClick={() => { if (modal.openFullProfile && !fullPage) modal.openFullProfile(); else { setNotice(''); setEditing(value => !value) } }} aria-expanded={editing}><Icon icon={Pen} />{editing ? 'Fechar' : fullPage ? 'Editar' : 'Ver perfil'}</button>}
+    </div>
+    {modal.user && !editing && <div className={styles.profileFacts} aria-label="Resumo dos dados pessoais"><div><span>Telefone</span><strong>{phone || 'Adicionar telefone'}</strong></div><div><span>CPF</span><strong>{profile.cpf || 'Não informado'}</strong></div></div>}
+    {modal.user && editing && <section className={styles.profileEditor} aria-label="Editar perfil">
+      <div className={styles.profileEditorHeading}><div><strong>Seus dados</strong><span>Atualize o que aparece na sua conta.</span></div><span className={styles.profileEditorBadge}><Icon icon={Check} />Seguro</span></div>
+      <label className={styles.profileField}><span>Nome completo</span><input value={name} maxLength={80} onChange={event => setName(event.target.value)} autoComplete="name" /></label>
+      <label className={styles.profileField}><span>Telefone <em>opcional</em></span><input value={phone} maxLength={24} onChange={event => setPhone(event.target.value)} inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" /></label>
+      <div className={styles.profileReadOnly}><span>E-mail</span><strong>{modal.user.email}</strong><small>O e-mail é usado para entrar na conta.</small></div>
+      {profile.cpf && <div className={styles.profileReadOnly}><span>CPF</span><strong>{profile.cpf}</strong><small>Documento vinculado à sua conta.</small></div>}
+      {notice && <p className={styles.profileNotice} role="status">{notice}</p>}
+      <div className={styles.profileEditorActions}><button className={styles.profileCancel} onClick={cancel} disabled={saving}>Cancelar</button><button className={styles.profileSave} onClick={save} disabled={saving}>{saving ? <><Icon icon={Spinner} spin />Salvando…</> : <><Icon icon={Check} />Salvar alterações</>}</button></div>
+    </section>}
+    {!modal.user && <div className={styles.profileAuth}><a className={styles.profilePrimary} href="#entrar">Entrar</a><a className={styles.profileSecondary} href="#criar-conta">Criar conta</a></div>}
+    {modal.user && !editing && notice && <p className={styles.profileNotice} role="status">{notice}</p>}
+    <div className={styles.profileList}><button onClick={() => modal.navigate('orders')}><span><Icon icon={Receipt} />Meus pedidos</span><Icon icon={CaretRight} /></button><button onClick={() => modal.navigate('favorites')}><span><Icon icon={Heart} />Favoritos</span><Icon icon={CaretRight} /></button><button onClick={modal.openAddress}><span><Icon icon={MapPin} />Endereços</span><Icon icon={CaretRight} /></button><button onClick={() => modal.onHelp ? modal.onHelp() : setModal({ type: 'help' })}><span><Icon icon={Question} />Ajuda</span><Icon icon={CaretRight} /></button></div>
+    <div className={styles.profilePartner}><a className={styles.driverInvite} href={modal.user ? (modal.account?.role === 'admin' ? '#admin' : '#motorista') : '#entrar'}><span className={styles.driverInviteIcon}><Icon icon={modal.account?.role === 'admin' ? Shield : Motorcycle} /></span><span><strong>{modal.user ? (modal.account?.role === 'admin' ? 'Painel administrativo' : modal.account?.role === 'driver' ? 'Área do entregador' : modal.account?.application?.status === 'pending' ? 'Cadastro de motorista' : 'Quero fazer entregas') : 'Quero fazer entregas'}</strong><small>{modal.user ? (modal.account?.role === 'admin' ? 'Cadastros e operação' : modal.account?.role === 'driver' ? 'Entregas e ganhos' : modal.account?.application?.status === 'pending' ? 'Análise em andamento' : 'Cadastre-se para começar') : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a><a className={styles.storeInvite} href={modal.user ? '#lojista' : '#entrar'}><span className={styles.storeInviteIcon}><Icon icon={Store} /></span><span><strong>Quero vender</strong><small>{modal.user ? 'Cadastre sua loja' : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a></div>
+    {modal.user && <button className={styles.profileLogout} onClick={modal.signOut}>Sair da conta</button>}
+  </>
+}
+
+function ProfilePage({ account, navigate, onBack, onAddress, onHelp, signOut }) {
+  const modal = { type: 'profile', user: account.user, account, navigate, openAddress: onAddress, onHelp, refresh: account.refresh, signOut }
+  return <section className={styles.profilePage}>
+    <header className={styles.profilePageHeader}><button onClick={onBack} aria-label="Voltar"><Icon icon={CaretLeft} /></button><div><small>Minha conta</small><h1>Perfil</h1></div><span><Icon icon={User} /></span></header>
+    <div className={styles.profilePageBody}><ProfilePanel modal={modal} setModal={() => {}} fullPage /></div>
+  </section>
+}
+
 function CatalogDialog({ modal, setModal }) {
-  const userName = modal?.user?.user_metadata?.full_name?.trim() || modal?.user?.email?.split('@')[0]
   return <Dialog.Root open={Boolean(modal)} onOpenChange={open => { if (!open) setModal(null) }}><AnimatePresence>{modal && <Dialog.Portal forceMount>
     <Dialog.Overlay asChild forceMount><motion.div className={styles.dialogOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} /></Dialog.Overlay>
     <Dialog.Content asChild forceMount><motion.section className={styles.dialog} initial={{ opacity: 0, y: 22, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .985 }} transition={{ duration: .25, ease: [0.22, 1, 0.36, 1] }}><div className={styles.dialogContent}>
       <Dialog.Close asChild><motion.button whileTap={tap} className={styles.close} aria-label="Fechar"><Icon icon={X} /></motion.button></Dialog.Close>
       {modal.type === 'help' && <><span className={styles.modalIcon}><Icon icon={Question} /></span><Dialog.Title asChild><h2>Como podemos ajudar?</h2></Dialog.Title><Dialog.Description className={styles.modalSubtitle}>Conheça esta prévia do TigreFood.</Dialog.Description><details open><summary>Como explorar o catálogo?</summary><p>Busque um prato ou restaurante, escolha uma categoria e combine os filtros. Toque em um prato para ver os detalhes.</p></details><details><summary>Posso fazer um pedido?</summary><p>Ainda não. As lojas, os valores e os prazos são demonstrativos.</p></details><details><summary>Onde ficam meus favoritos?</summary><p>Os pratos marcados com coração ficam na seção Favoritos e são salvos neste navegador.</p></details></>}
-      {modal.type === 'profile' && <><div className={styles.profileHero}><span className={styles.profileAvatar}>{modal.user?.user_metadata?.avatar_url ? <img src={modal.user.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</span><div><Dialog.Title asChild><h2>{modal.user ? userName : 'Sua conta'}</h2></Dialog.Title><Dialog.Description>{modal.user ? modal.user.email : 'Entre para acompanhar pedidos e salvar seus dados.'}</Dialog.Description></div></div>{!modal.user && <div className={styles.profileAuth}><a className={styles.profilePrimary} href="#entrar">Entrar</a><a className={styles.profileSecondary} href="#criar-conta">Criar conta</a></div>}<div className={styles.profileList}><button onClick={() => modal.navigate('orders')}><span><Icon icon={Receipt} />Meus pedidos</span><Icon icon={CaretRight} /></button><button onClick={() => modal.navigate('favorites')}><span><Icon icon={Heart} />Favoritos</span><Icon icon={CaretRight} /></button><button onClick={modal.openAddress}><span><Icon icon={MapPin} />Endereços</span><Icon icon={CaretRight} /></button><button onClick={() => setModal({ type: 'help' })}><span><Icon icon={Question} />Ajuda</span><Icon icon={CaretRight} /></button></div><div className={styles.profilePartner}><a className={styles.driverInvite} href={modal.user ? (modal.account?.role === 'admin' ? '#admin' : '#motorista') : '#entrar'}><span className={styles.driverInviteIcon}><Icon icon={modal.account?.role === 'admin' ? Shield : Motorcycle} /></span><span><strong>{modal.user ? (modal.account?.role === 'admin' ? 'Painel administrativo' : modal.account?.role === 'driver' ? 'Área do entregador' : modal.account?.application?.status === 'pending' ? 'Cadastro de motorista' : 'Quero fazer entregas') : 'Quero fazer entregas'}</strong><small>{modal.user ? (modal.account?.role === 'admin' ? 'Cadastros e operação' : modal.account?.role === 'driver' ? 'Entregas e ganhos' : modal.account?.application?.status === 'pending' ? 'Análise em andamento' : 'Cadastre-se para começar') : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a><a className={styles.storeInvite} href={modal.user ? '#lojista' : '#entrar'}><span className={styles.storeInviteIcon}><Icon icon={Store} /></span><span><strong>Quero vender</strong><small>{modal.user ? 'Cadastre sua loja' : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a></div>{modal.user && <button className={styles.profileLogout} onClick={modal.signOut}>Sair da conta</button>}</>}
+      {modal.type === 'profile' && <ProfilePanel modal={modal} setModal={setModal} />}
     </div></motion.section></Dialog.Content>
   </Dialog.Portal>}</AnimatePresence></Dialog.Root>
 }
@@ -588,7 +709,7 @@ export function CatalogPage() {
   const [addressReturn, setAddressReturn] = useState('home')
   const [modal, setModal] = useState(null), [toast, setToast] = useState('')
   const authUser = account.user
-  const chromeRef = useScrollChrome(!reducedMotion && !modal && !['cart', 'payment', 'product', 'address'].includes(page), page)
+  const chromeRef = useScrollChrome(!reducedMotion && !modal && !['cart', 'payment', 'product', 'address', 'profile'].includes(page), page)
   const results = useRef(null), searchInput = useRef(null)
   const count = Object.values(cart).reduce((sum, value) => sum + value, 0)
   const subtotal = products.reduce((sum, item) => {
@@ -630,26 +751,28 @@ export function CatalogPage() {
   const sectionTitle = query ? `Resultados para “${query}”` : page === 'favorites' ? 'Pratos salvos' : page === 'offers' ? 'Pratos em oferta' : category !== 'all' ? categories.find(cat => cat.id === category).label : 'Ofertas para você'
   const discovery = page === 'home' && category === 'all' && !query.trim() && !free && !fast && sort === 'recommended'
 
-  const openProfile = () => setModal({ type: 'profile', navigate, openAddress: () => openAddress('home'), user: authUser, account, signOut })
+  const openProfilePage = () => { setModal(null); navigate('profile') }
+  const openProfile = () => setModal({ type: 'profile', navigate, openAddress: () => openAddress('home'), openFullProfile: openProfilePage, user: authUser, account, refresh: account.refresh, signOut })
 
   return <MotionConfig reducedMotion="user"><Tooltip.Provider delayDuration={500} skipDelayDuration={200}><div ref={chromeRef} className={`${styles.layout} relative isolate`}>
     <aside className={styles.sidebar}><a href="#catalogo" className={styles.brand} onClick={() => navigate('home')} aria-label="TigreFood, início"><img src="/tiger.svg" alt="" /><span>Tigre<span>Food</span></span></a><nav aria-label="Menu principal">{nav.map(item => <Tooltip.Root key={item.id}><Tooltip.Trigger asChild><motion.button whileTap={tap} className={page === item.id ? styles.navActive : ''} onClick={() => navigate(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon icon={item.icon} weight={page === item.id ? 'fill' : 'regular'} /><span>{item.name}</span>{item.id === 'favorites' && favorites.length > 0 && <small>{favorites.length}</small>}</motion.button></Tooltip.Trigger><Tooltip.Portal><Tooltip.Content className={styles.tooltip} side="right" sideOffset={10}>{item.name}<Tooltip.Arrow className={styles.tooltipArrow} /></Tooltip.Content></Tooltip.Portal></Tooltip.Root>)}</nav><div className={styles.sidebarBottom}><button className={styles.help} onClick={() => setModal({ type: 'help' })}><Icon icon={Question} />Precisa de ajuda?</button><span className={styles.sidebarCopyright}>TigreFood</span></div></aside>
 
-    <div className={styles.workspace}><header className={styles.topbar}><motion.button whileTap={tap} className={`${styles.iconButton} ${styles.menuButton}`} onClick={openProfile} aria-label="Abrir perfil" aria-expanded={modal?.type === 'profile'}>{authUser?.user_metadata?.avatar_url ? <img className={styles.headerAvatar} src={authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</motion.button><motion.button whileTap={tap} className={styles.address} onClick={() => openAddress('home')}><span className={styles.pin}><Icon icon={MapPin} /></span><span><strong>{address?.label || 'Informe seu endereço'}</strong></span><Icon icon={CaretDown} /></motion.button><label className={styles.search}><Icon icon={MagnifyingGlass} /><input ref={searchInput} aria-label="Buscar pratos ou restaurantes" placeholder="Busque um prato ou restaurante" value={query} onChange={event => { setQuery(event.target.value); if (page === 'orders') setPage('home') }} />{query && <motion.button whileTap={tap} onClick={() => setQuery('')} aria-label="Limpar busca"><Icon icon={X} /></motion.button>}<kbd>/</kbd></label>{authUser ? <button className={styles.account} onClick={openProfile}><Icon icon={User} /><span>{authUser.user_metadata?.full_name?.split(' ')[0] || 'Minha conta'}</span></button> : <a className={styles.account} href="#entrar"><Icon icon={User} /><span>Entrar</span></a>}<motion.button whileTap={tap} className={styles.mobileFilter} aria-label="Filtrar cardápio" aria-expanded={filters} onClick={() => { if (page === 'orders') setPage('menu'); setFilters(!filters); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }}><Icon icon={SlidersHorizontal} />{(free || fast) && <i />}</motion.button><motion.button whileTap={{ scale: .92 }} className={styles.bag} onClick={() => navigate('cart')} aria-label={`Abrir sacola, ${count} itens`}><Icon icon={Bag} /><span>Sacola</span><AnimatePresence mode="popLayout" initial={false}><motion.b key={count} initial={{ scale: .45, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.3, opacity: 0 }} transition={spring}>{count}</motion.b></AnimatePresence></motion.button></header>
+    <div className={`${styles.workspace} ${page === 'profile' ? styles.profileWorkspace : ''}`}><header className={styles.topbar}><motion.button whileTap={tap} className={`${styles.iconButton} ${styles.menuButton}`} onClick={openProfile} aria-label="Abrir perfil" aria-expanded={modal?.type === 'profile'}>{authUser?.user_metadata?.avatar_url ? <img className={styles.headerAvatar} src={authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</motion.button><motion.button whileTap={tap} className={styles.address} onClick={() => openAddress('home')}><span className={styles.pin}><Icon icon={MapPin} /></span><span><strong>{address?.label || 'Informe seu endereço'}</strong></span><Icon icon={CaretDown} /></motion.button><label className={styles.search}><Icon icon={MagnifyingGlass} /><input ref={searchInput} aria-label="Buscar pratos ou restaurantes" placeholder="Busque um prato ou restaurante" value={query} onChange={event => { setQuery(event.target.value); if (page === 'orders') setPage('home') }} />{query && <motion.button whileTap={tap} onClick={() => setQuery('')} aria-label="Limpar busca"><Icon icon={X} /></motion.button>}<kbd>/</kbd></label>{authUser ? <button className={styles.account} onClick={openProfile}><Icon icon={User} /><span>{authUser.user_metadata?.full_name?.split(' ')[0] || 'Minha conta'}</span></button> : <a className={styles.account} href="#entrar"><Icon icon={User} /><span>Entrar</span></a>}<motion.button whileTap={tap} className={styles.mobileFilter} aria-label="Filtrar cardápio" aria-expanded={filters} onClick={() => { if (page === 'orders') setPage('menu'); setFilters(!filters); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }}><Icon icon={SlidersHorizontal} />{(free || fast) && <i />}</motion.button><motion.button whileTap={{ scale: .92 }} className={styles.bag} onClick={() => navigate('cart')} aria-label={`Abrir sacola, ${count} itens`}><Icon icon={Bag} /><span>Sacola</span><AnimatePresence mode="popLayout" initial={false}><motion.b key={count} initial={{ scale: .45, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.3, opacity: 0 }} transition={spring}>{count}</motion.b></AnimatePresence></motion.button></header>
       <main className={styles.main}><AnimatePresence mode="wait" initial={false}><motion.div key={page} className={`${styles.pageContent} min-w-0`} initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }} transition={{ duration: .24, ease: [0.22, 1, 0.36, 1] }}>
-        <div className={`${styles.greeting} ${page === 'home' && !query ? styles.homeGreeting : ''} ${['cart', 'payment', 'product', 'address'].includes(page) ? styles.cartGreeting : ''}`}><h1>{heading}</h1></div>
+        {page !== 'profile' && <div className={`${styles.greeting} ${page === 'home' && !query ? styles.homeGreeting : ''} ${['cart', 'payment', 'product', 'address'].includes(page) ? styles.cartGreeting : ''}`}><h1>{heading}</h1></div>}
         {page === 'home' && !query && <HeroCarousel onBrowse={browse} />}
-        {page === 'address' ? <AddressPage address={address} onBack={() => navigate(addressReturn)} onSave={value => { setAddress(value); setToast('Endereço salvo'); navigate(addressReturn) }} />
+        {page === 'profile' ? <ProfilePage account={account} navigate={navigate} onBack={() => navigate('home')} onAddress={() => openAddress('profile')} onHelp={() => setModal({ type: 'help' })} signOut={signOut} />
+          : page === 'address' ? <AddressPage address={address} onBack={() => navigate(addressReturn)} onSave={value => { setAddress(value); setToast('Endereço salvo'); navigate(addressReturn) }} />
           : page === 'product' ? <ProductPage key={selectedProduct.id} product={selectedProduct} favorite={favorites.includes(selectedProduct.id)} onFavorite={() => toggleFavorite(selectedProduct.id)} onBack={() => navigate('home')} onAdd={(item, amount, extras) => { add(item, amount, extras); navigate('cart') }} />
             : page === 'cart' ? <CartPage count={count} cart={cart} cartExtras={cartExtras} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} couponCode={couponCode} fulfillment={fulfillment} changeQuantity={changeQuantity} browse={browse} onBack={() => navigate('home')} user={authUser} onCoupon={setCouponCode} onFulfillment={setFulfillment} onCheckout={() => navigate('payment')} />
               : page === 'payment' ? <PaymentPage address={address} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} fulfillment={fulfillment} onFulfillment={setFulfillment} onBack={() => navigate('cart')} onAddress={() => openAddress('payment')} onConfirm={method => setToast(`${method} selecionado para este pedido`)} />
                 : page !== 'orders' ? <><CategoryCarousel value={category} onChange={setCategory} /><section ref={results} className={styles.results} aria-label="Cardápio"><div className={styles.sectionHeading}><div><h2>{sectionTitle}</h2><p>{visible.length} {visible.length === 1 ? 'opção' : 'opções'}</p></div><motion.button whileTap={tap} className={`${styles.filterButton} ${filters ? styles.filterActive : ''}`} onClick={() => setFilters(!filters)} aria-expanded={filters}><Icon icon={SlidersHorizontal} />Filtros{(free || fast) && <b>{Number(free) + Number(fast)}</b>}</motion.button></div><div className={`${styles.filterRow} ${filters ? styles.filtersExpanded : ''}`}><motion.button whileTap={tap} className={free ? styles.chipActive : ''} aria-pressed={free} onClick={() => setFree(!free)}>Entrega grátis</motion.button><motion.button whileTap={tap} className={fast ? styles.chipActive : ''} aria-pressed={fast} onClick={() => setFast(!fast)}><Icon className={styles.filterBolt} icon={Lightning} />Até 30 min</motion.button><SortControl value={sort} onChange={setSort} /></div><AnimatePresence mode="popLayout">{visible.length ? <CatalogSections items={visible} discovery={discovery} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} add={add} browse={browse} /> : <motion.div className={styles.empty} initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}><Icon icon={page === 'favorites' ? Heart : MagnifyingGlass} /><h3>{page === 'favorites' && !favorites.length ? 'Nenhum favorito salvo.' : 'Não encontramos essa combinação.'}</h3><p>{page === 'favorites' && !favorites.length ? 'Toque no coração de um prato para encontrá-lo aqui depois.' : 'Experimente outro nome ou remova alguns filtros.'}</p><button onClick={() => navigate('home')}>Explorar o cardápio<Icon icon={ArrowRight} /></button></motion.div>}</AnimatePresence></section></> : <OrdersEmpty user={authUser} onBrowse={() => navigate('home')} />}
-        {!['cart', 'payment', 'product', 'address'].includes(page) && <footer className={styles.footer}><strong>TigreFood</strong><p>Fotos ilustrativas · Lojas, preços e prazos de demonstração.</p><button onClick={() => setModal({ type: 'help' })}>Ajuda e informações<Icon icon={ArrowRight} /></button></footer>}
+        {!['cart', 'payment', 'product', 'address', 'profile'].includes(page) && <footer className={styles.footer}><strong>TigreFood</strong><p>Fotos ilustrativas · Lojas, preços e prazos de demonstração.</p><button onClick={() => setModal({ type: 'help' })}>Ajuda e informações<Icon icon={ArrowRight} /></button></footer>}
       </motion.div></AnimatePresence></main>
     </div>
 
     <CatalogDialog modal={modal} setModal={setModal} />
-    <nav className={styles.bottomNav} aria-label="Navegação do celular">{bottomNavItems.map(item => <BottomNavItem key={item.id} item={item} active={item.id === 'profile' ? modal?.type === 'profile' : page === item.id && modal?.type !== 'profile'} onClick={item.id === 'profile' ? openProfile : () => navigate(item.id)} />)}</nav>
+    <nav className={styles.bottomNav} aria-label="Navegação do celular">{bottomNavItems.map(item => <BottomNavItem key={item.id} item={item} active={item.id === 'profile' ? page === 'profile' || modal?.type === 'profile' : page === item.id && modal?.type !== 'profile'} onClick={item.id === 'profile' ? openProfile : () => navigate(item.id)} />)}</nav>
     <AnimatePresence>{toast && <motion.div className={styles.toast} role="status" initial={{ opacity: 0, y: 16, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 10, x: '-50%' }}><span><Icon icon={Bag} weight="fill" />{toast}</span></motion.div>}</AnimatePresence>
   </div></Tooltip.Provider></MotionConfig>
 }
