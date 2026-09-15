@@ -1,26 +1,39 @@
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f1e8;padding:32px 16px;font-family:Arial,sans-serif;color:#202019">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:20px;overflow:hidden">
-            <tr><td style="height:10px;background:#ffda00"></td></tr>
-            <tr>
-              <td style="padding:34px 34px 14px">
-                <div style="font-size:22px;font-weight:800;letter-spacing:-.5px">Tigre<span style="color:#f05a18">Food</span></div>
-                <h1 style="margin:30px 0 10px;font-size:26px;line-height:1.15">Confirme seu e-mail</h1>
-                <p style="margin:0;color:#6b685f;font-size:15px;line-height:1.6">Use este código para terminar de criar sua conta:</p>
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding:18px 34px">
-                <div style="display:inline-block;background:#ffda00;border-radius:14px;padding:16px 24px;font-size:30px;font-weight:800;letter-spacing:10px">{{ .Token }}</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:12px 34px 34px;color:#858178;font-size:12px;line-height:1.5">
-                O código expira em breve. Se você não pediu este cadastro, pode ignorar este e-mail.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f3f1ea;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;color:#24241f">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background:#ffffff;border-radius:22px;overflow:hidden">
+        <tr>
+          <td style="background:#ffda00;padding:12px 24px;text-align:center;font-size:16px;font-weight:800;letter-spacing:-.2px">Tigre<span style="color:#ef5b1a">Food</span></td>
+        </tr>
+        <tr>
+          <td style="padding:0;background:#ef3a3e">
+            <img src="{{ .SiteURL }}/email-confirmation.png" width="560" alt="TigreFood — confirme seu e-mail" style="display:block;width:100%;height:auto;border:0">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:30px 34px 10px">
+            <h1 style="margin:0;font-size:25px;line-height:1.2;letter-spacing:-.5px">Seu código de confirmação</h1>
+            <p style="margin:10px 0 0;color:#6e6c64;font-size:14px;line-height:1.6">Digite o código abaixo no TigreFood para terminar de criar sua conta.</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:18px 34px 8px">
+            <div style="display:inline-block;min-width:210px;padding:16px 22px;border:1px solid #e7e3d7;border-radius:14px;background:#fffdf5;color:#24241f;font-size:30px;font-weight:800;letter-spacing:9px;text-align:center;user-select:all">{{ .Token }}</div>
+            <p style="margin:10px 0 0;color:#96938a;font-size:11px;line-height:1.4">Toque e segure o código para copiar.</p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:18px 34px 24px">
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 24px;border-radius:12px;background:#ffda00;color:#24241f;font-size:14px;font-weight:800;text-decoration:none">Confirmar meu e-mail&nbsp; →</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:18px 34px 28px;border-top:1px solid #eeeae0;color:#89867d;font-size:11px;line-height:1.6">
+            Este código expira em breve. Se você não pediu este cadastro, pode ignorar esta mensagem.
+          </td>
+        </tr>
+      </table>
+      <p style="max-width:520px;margin:15px auto 0;color:#9a978e;font-size:10px;line-height:1.5">Você recebeu este e-mail porque uma conta TigreFood foi criada com este endereço.</p>
+    </td>
+  </tr>
+</table>

@@ -117,14 +117,14 @@ function useScrollChrome(enabled, page) {
     }
     const onScroll = () => {
       const y = Math.max(0, window.scrollY)
-      if (y <= 16) root.removeAttribute('data-compact-header')
-      else if (y >= 36) root.setAttribute('data-compact-header', 'true')
-      if (y <= 16 || root.querySelector(`.${styles.bottomNav} :focus-visible`)) { showBottomNav(); return }
+      if (y <= 4) root.removeAttribute('data-compact-header')
+      else if (y >= 72) root.setAttribute('data-compact-header', 'true')
+      if (y <= 4 || root.querySelector(`.${styles.bottomNav} :focus-visible`)) { showBottomNav(); return }
       root.setAttribute('data-scrolling', 'true')
       window.clearTimeout(idleTimer)
       idleTimer = window.setTimeout(showBottomNav, 420)
     }
-    if (window.scrollY >= 36) root.setAttribute('data-compact-header', 'true')
+    if (window.scrollY >= 72) root.setAttribute('data-compact-header', 'true')
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       showBottomNav()
