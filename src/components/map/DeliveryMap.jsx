@@ -73,6 +73,8 @@ export function DeliveryMap({
   storeLocation,
   destination,
   route,
+  fitRoute = false,
+  centerZoom,
   className = '',
 }) {
   const containerRef = useRef(null)
@@ -115,7 +117,10 @@ export function DeliveryMap({
     mapRef.current = map
     const markerRegistry = markers.current
     return () => {
-      Object.values(markerRegistry).forEach(marker => marker?.remove())
+      Object.keys(markerRegistry).forEach(key => {
+        markerRegistry[key]?.remove()
+        markerRegistry[key] = null
+      })
       map.remove()
       mapRef.current = null
     }
@@ -125,8 +130,10 @@ export function DeliveryMap({
     const map = mapRef.current
     if (!map || !validPoint(center)) return
     const current = map.getCenter()
-    if (Math.abs(current.lat - center[0]) > .00002 || Math.abs(current.lng - center[1]) > .00002) map.easeTo({ center: lngLat(center), duration: 420 })
-  }, [center])
+    const centerChanged = Math.abs(current.lat - center[0]) > .00002 || Math.abs(current.lng - center[1]) > .00002
+    const zoomChanged = Number.isFinite(centerZoom) && Math.abs(map.getZoom() - centerZoom) > .1
+    if (centerChanged || zoomChanged) map.easeTo({ center: lngLat(center), zoom: Number.isFinite(centerZoom) ? centerZoom : map.getZoom(), duration: 520 })
+  }, [center, centerZoom])
 
   useEffect(() => {
     const map = mapRef.current
@@ -155,11 +162,17 @@ export function DeliveryMap({
     const apply = () => {
       const source = map.getSource('route')
       if (!source) return
-      source.setData(route?.type === 'Feature' ? route : route?.type === 'LineString' ? { type: 'Feature', properties: {}, geometry: route } : emptyLine)
+      const feature = route?.type === 'Feature' ? route : route?.type === 'LineString' ? { type: 'Feature', properties: {}, geometry: route } : null
+      source.setData(feature || emptyLine)
+      const coordinates = feature?.geometry?.coordinates
+      if (fitRoute && Array.isArray(coordinates) && coordinates.length > 1) {
+        const bounds = coordinates.reduce((next, coordinate) => next.extend(coordinate), new maplibregl.LngLatBounds(coordinates[0], coordinates[0]))
+        map.fitBounds(bounds, { padding: { top: 110, right: 42, bottom: 220, left: 42 }, maxZoom: 16, duration: 650 })
+      }
     }
-    if (map.loaded()) apply()
+    if (map.getSource('route')) apply()
     else map.once('load', apply)
-  }, [route])
+  }, [fitRoute, route])
 
   useEffect(() => {
     const map = mapRef.current
@@ -176,7 +189,7 @@ export function DeliveryMap({
       })
       source.setData({ type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [points] } })
     }
-    if (map.loaded()) apply()
+    if (map.getSource('accuracy')) apply()
     else map.once('load', apply)
   }, [accuracy, userLocation])
 

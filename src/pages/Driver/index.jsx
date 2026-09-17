@@ -30,7 +30,7 @@ import { useIdentityVerification } from '../../hooks/useIdentityVerification'
 import { useDriverTracking } from '../../hooks/useDriverTracking'
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
 import { FaceScan } from '../../components/FaceScan'
-import { formatEta, getDrivingRoute } from '../../services/routing'
+import { formatDistance, formatEta, getDrivingRoute } from '../../services/routing'
 import { formatCpf, formatPhone, isValidCpf, onlyDigits } from '../../utils/validators'
 import { supabase } from '../../lib/supabase'
 import styles from './Driver.module.css'
@@ -43,6 +43,59 @@ const vehicles = [
   { id: 'bicycle', label: 'Bicicleta', icon: faBicycle },
   { id: 'car', label: 'Carro', icon: faCar },
 ]
+
+const validPoint = point => Array.isArray(point) && point.length === 2 && point.every(Number.isFinite)
+
+function pointFromAddress(address) {
+  if (Array.isArray(address?.point)) {
+    const point = address.point.map(Number)
+    if (validPoint(point)) return point
+  }
+  const latitude = Number(address?.latitude ?? address?.lat)
+  const longitude = Number(address?.longitude ?? address?.lng)
+  return Number.isFinite(latitude) && Number.isFinite(longitude) ? [latitude, longitude] : null
+}
+
+function routeInstruction(step, destinationLabel) {
+  if (!step) return `Siga em direção a ${destinationLabel}`
+  const street = step.name ? ` na ${step.name}` : ''
+  const modifier = step.maneuver?.modifier
+  const side = modifier?.includes('left') ? 'à esquerda' : modifier?.includes('right') ? 'à direita' : ''
+  if (step.maneuver?.type === 'arrive') return `Você chegou a ${destinationLabel}`
+  if (step.maneuver?.type === 'roundabout' || step.maneuver?.type === 'rotary') return `Entre na rotatória${street}`
+  if (['turn', 'fork', 'end of road', 'new name'].includes(step.maneuver?.type) && side) return `Vire ${side}${street}`
+  if (step.maneuver?.type === 'merge') return `Entre${street}`
+  return `Siga${street || ` em direção a ${destinationLabel}`}`
+}
+
+function useDriverRoute(order, location) {
+  const [route, setRoute] = useState(null)
+  const [routeMeta, setRouteMeta] = useState(null)
+  const [routeError, setRouteError] = useState('')
+  const driverPoint = useMemo(() => location ? [Number(location.latitude), Number(location.longitude)] : null, [location])
+  const storePoint = useMemo(() => Number.isFinite(Number(order.stores?.latitude)) && Number.isFinite(Number(order.stores?.longitude)) ? [Number(order.stores.latitude), Number(order.stores.longitude)] : null, [order.stores])
+  const addressPoint = useMemo(() => pointFromAddress(order.delivery_address), [order.delivery_address])
+  const target = order.status === 'picked_up' ? addressPoint : storePoint
+  const canRoute = validPoint(driverPoint) && validPoint(target)
+
+  useEffect(() => {
+    if (!canRoute) return undefined
+    const controller = new AbortController()
+    getDrivingRoute([driverPoint, target], controller.signal).then(result => {
+      if (!result) return
+      setRoute(result.geometry)
+      setRouteMeta(result)
+      setRouteError('')
+    }).catch(error => {
+      if (error.name === 'AbortError') return
+      setRouteError('Não foi possível calcular a rota agora.')
+      setRouteMeta(null)
+    })
+    return () => controller.abort()
+  }, [canRoute, driverPoint, target])
+
+  return { driverPoint, storePoint, addressPoint, target, route: canRoute ? route : null, routeMeta: canRoute ? routeMeta : null, routeError: canRoute ? routeError : '' }
+}
 
 function Shell({ children, eyebrow = 'Parceiros TigreFood' }) {
   return <main className={styles.page}>
@@ -63,29 +116,64 @@ function Gate({ title, text, action = 'Entrar na minha conta', href = '#entrar',
 }
 
 function DriverRouteMap({ order, location }) {
-  const [route, setRoute] = useState(null)
-  const [routeMeta, setRouteMeta] = useState(null)
-  const driverPoint = useMemo(() => location ? [Number(location.latitude), Number(location.longitude)] : null, [location])
-  const storePoint = useMemo(() => Number.isFinite(Number(order.stores?.latitude)) && Number.isFinite(Number(order.stores?.longitude)) ? [Number(order.stores.latitude), Number(order.stores.longitude)] : null, [order.stores])
-  const addressPoint = useMemo(() => Array.isArray(order.delivery_address?.point) ? order.delivery_address.point.map(Number) : null, [order.delivery_address])
-  const target = order.status === 'picked_up' ? addressPoint : storePoint
-
-  useEffect(() => {
-    if (!driverPoint || !target) return undefined
-    const controller = new AbortController()
-    getDrivingRoute([driverPoint, target], controller.signal).then(result => {
-      if (!result) return
-      setRoute(result.geometry)
-      setRouteMeta(result)
-    }).catch(error => { if (error.name !== 'AbortError') setRouteMeta(null) })
-    return () => controller.abort()
-  }, [driverPoint, target])
+  const { driverPoint, storePoint, addressPoint, route, routeMeta } = useDriverRoute(order, location)
 
   if (!driverPoint) return null
   return <div className={styles.driverRouteMap}>
-    <Suspense fallback={<div className={styles.mapLoading}>Abrindo rota…</div>}><DeliveryMap center={driverPoint} zoom={13.5} driverLocation={driverPoint} storeLocation={storePoint} destination={addressPoint} route={route} /></Suspense>
-    <div className={styles.driverRouteMeta}><span>{order.status === 'picked_up' ? 'Até o cliente' : 'Até a retirada'}</span><strong>{routeMeta ? formatEta(routeMeta.duration) : 'Calculando…'}</strong></div>
+    <Suspense fallback={<div className={styles.mapLoading}>Abrindo rota…</div>}><DeliveryMap center={driverPoint} zoom={13.5} driverLocation={driverPoint} storeLocation={storePoint} destination={addressPoint} route={route} fitRoute /></Suspense>
+    <div className={styles.driverRouteMeta}><span>{order.status === 'picked_up' ? 'Até o cliente' : 'Até a retirada'}</span><strong>{routeMeta ? `${formatEta(routeMeta.duration)} · ${formatDistance(routeMeta.distance)}` : 'Calculando…'}</strong></div>
   </div>
+}
+
+function DriverNavigation({ order, location, online, updating, onClose, onAction }) {
+  const [overview, setOverview] = useState(true)
+  const { driverPoint, storePoint, addressPoint, route, routeMeta, routeError } = useDriverRoute(order, location)
+  const goingToCustomer = order.status === 'picked_up'
+  const accepted = Boolean(order.driver_accepted_at)
+  const action = !accepted ? 'accept' : goingToCustomer ? 'deliver' : 'pickup'
+  const actionLabel = !accepted ? 'Aceitar esta entrega' : goingToCustomer ? 'Finalizar entrega' : 'Confirmar retirada'
+  const destinationLabel = goingToCustomer ? (order.delivery_address?.recipient_name || 'cliente') : (order.stores?.name || 'loja')
+  const destinationAddress = goingToCustomer
+    ? order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number, order.delivery_address?.neighborhood].filter(Boolean).join(', ')
+    : order.stores?.address
+  const nextStep = routeMeta?.steps?.find(step => step.distance > 25) || routeMeta?.steps?.[0]
+
+  return <motion.section className={styles.navigation} role="dialog" aria-modal="true" aria-label="Navegação da entrega" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: .28, ease: [0.22, 1, 0.36, 1] }}>
+    <div className={styles.navigationMap}>
+      <Suspense fallback={<div className={styles.navigationLoading}>Preparando o mapa…</div>}>
+        <DeliveryMap
+          center={overview ? null : driverPoint}
+          centerZoom={overview ? undefined : 16}
+          zoom={15}
+          driverLocation={driverPoint}
+          storeLocation={storePoint}
+          destination={addressPoint}
+          route={route}
+          fitRoute={overview}
+        />
+      </Suspense>
+    </div>
+    <header className={styles.navigationHeader}>
+      <button type="button" onClick={onClose} aria-label="Fechar navegação"><Icon icon={faArrowLeft} /></button>
+      <div><small>{goingToCustomer ? 'Indo até o cliente' : 'Indo para retirada'}</small><strong>{destinationLabel}</strong></div>
+      <span>{routeMeta ? formatEta(routeMeta.duration) : '…'}</span>
+    </header>
+    <div className={styles.navigationControls}>
+      <button type="button" className={!overview ? styles.navigationControlActive : ''} onClick={() => setOverview(false)}><Icon icon={faLocationDot} />Minha posição</button>
+      <button type="button" className={overview ? styles.navigationControlActive : ''} onClick={() => setOverview(true)}><Icon icon={faRoute} />Ver rota</button>
+    </div>
+    <section className={styles.navigationSheet}>
+      <div className={styles.navigationInstruction}>
+        <span><Icon icon={faRoute} /></span>
+        <div><small>{routeMeta ? `${formatDistance(routeMeta.distance)} · ${formatEta(routeMeta.duration)}` : routeError || 'Calculando melhor caminho…'}</small><strong>{routeInstruction(nextStep, destinationLabel)}</strong></div>
+      </div>
+      <div className={styles.navigationDestination}><Icon icon={faLocationDot} /><span><small>{goingToCustomer ? 'Endereço do cliente' : 'Endereço da loja'}</small><strong>{destinationAddress || 'Endereço indisponível'}</strong></span></div>
+      <button type="button" className={styles.navigationAction} disabled={!online || updating} onClick={async () => {
+        const completed = await onAction(order, action)
+        if (completed && action === 'deliver') onClose()
+      }}>{updating ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button>
+    </section>
+  </motion.section>
 }
 
 function DriverHome({ account }) {
@@ -96,6 +184,7 @@ function DriverHome({ account }) {
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [ordersError, setOrdersError] = useState('')
   const [updatingOrder, setUpdatingOrder] = useState('')
+  const [navigationOrderId, setNavigationOrderId] = useState('')
   const firstName = account.profile?.full_name?.split(' ')[0] || 'Parceiro'
   const notify = message => { setToast(message); window.setTimeout(() => setToast(''), 2200) }
 
@@ -128,12 +217,14 @@ function DriverHome({ account }) {
     setUpdatingOrder(order.id)
     const { error } = await supabase.rpc('driver_update_demo_order', { p_order_id: order.id, p_action: action })
     setUpdatingOrder('')
-    if (error) { notify('Não foi possível atualizar esta entrega.'); return }
+    if (error) { notify('Não foi possível atualizar esta entrega.'); return false }
     await loadOrders()
     notify(action === 'accept' ? 'Entrega aceita' : action === 'pickup' ? 'Pedido retirado na loja' : 'Entrega finalizada')
+    return true
   }
 
   const activeOrders = orders.filter(order => !['delivered', 'cancelled'].includes(order.status))
+  const navigationOrder = activeOrders.find(order => order.id === navigationOrderId)
   const deliveredToday = orders.filter(order => order.status === 'delivered' && new Date(order.created_at).toDateString() === new Date().toDateString())
   const todayEarnings = deliveredToday.reduce((sum, order) => sum + Number(order.driver_fee || 0), 0)
 
@@ -157,7 +248,6 @@ function DriverHome({ account }) {
           const accepted = Boolean(order.driver_accepted_at)
           const action = !accepted ? 'accept' : order.status === 'picked_up' ? 'deliver' : 'pickup'
           const actionLabel = !accepted ? 'Aceitar entrega' : order.status === 'picked_up' ? 'Finalizar entrega' : 'Confirmar retirada'
-          const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`
           return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .32, ease: [0.22, 1, 0.36, 1] }}>
             <div className={styles.deliveryCardTop}><span><Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} /></span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
             {accepted && <DriverRouteMap order={order} location={tracking.location} />}
@@ -166,7 +256,7 @@ function DriverHome({ account }) {
               <div><i /><span><small>Entrega</small><strong>{order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
             </div>
             <div className={styles.deliveryItems}><Icon icon={faReceipt} /><span>{(order.store_order_items || []).map(item => `${item.quantity}× ${item.product_name}`).join(' · ') || 'Itens do pedido'}</span><small>{order.payment_method === 'cash' ? 'Receber em dinheiro' : order.payment_method === 'card' ? 'Pago no cartão' : 'Pago pelo Pix'}</small></div>
-            <div className={styles.deliveryActions}><a href={mapsUrl} target="_blank" rel="noreferrer"><Icon icon={faRoute} />Abrir rota</a><button disabled={!online || updatingOrder === order.id} onClick={() => updateOrder(order, action)}>{updatingOrder === order.id ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button></div>
+            <div className={styles.deliveryActions}><button type="button" className={styles.routeAction} onClick={() => setNavigationOrderId(order.id)}><Icon icon={faRoute} />Navegar no app</button><button disabled={!online || updatingOrder === order.id} onClick={() => updateOrder(order, action)}>{updatingOrder === order.id ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button></div>
           </motion.article>
         })}
       </section>}
@@ -197,6 +287,7 @@ function DriverHome({ account }) {
         <button onClick={() => notify('Central do parceiro disponível em breve')}><span><Icon icon={faHeadset} />Ajuda para entregadores</span><Icon icon={faChevronRight} /></button>
       </section>
     </section>
+    <AnimatePresence>{navigationOrder && <DriverNavigation key={`${navigationOrder.id}:${navigationOrder.status}`} order={navigationOrder} location={tracking.location} online={online} updating={updatingOrder === navigationOrder.id} onClose={() => setNavigationOrderId('')} onAction={updateOrder} />}</AnimatePresence>
     <AnimatePresence>{toast && <motion.div className={styles.toast} initial={{ opacity: 0, y: 12, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 8, x: '-50%' }}>{toast}</motion.div>}</AnimatePresence>
   </Shell>
 }

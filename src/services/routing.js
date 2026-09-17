@@ -10,7 +10,7 @@ export async function getDrivingRoute(points, signal) {
   const key = safePoints.map(pointKey).join(';')
   if (cache.has(key)) return cache.get(key)
   const coordinates = safePoints.map(([lat, lng]) => `${lng},${lat}`).join(';')
-  const response = await fetch(`${routingBase}/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=false`, { signal, headers: { Accept: 'application/json' } })
+  const response = await fetch(`${routingBase}/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=true`, { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error('route_unavailable')
   const payload = await response.json()
   if (payload.code !== 'Ok' || !payload.routes?.[0]) throw new Error('route_not_found')
@@ -18,9 +18,16 @@ export async function getDrivingRoute(points, signal) {
     geometry: payload.routes[0].geometry,
     distance: Math.round(payload.routes[0].distance),
     duration: Math.round(payload.routes[0].duration),
+    steps: payload.routes[0].legs?.flatMap(leg => leg.steps || []) || [],
   }
   cache.set(key, result)
   return result
+}
+
+export function formatDistance(meters) {
+  if (!Number.isFinite(meters) || meters < 0) return ''
+  if (meters < 1000) return `${Math.max(10, Math.round(meters / 10) * 10)} m`
+  return `${(meters / 1000).toLocaleString('pt-BR', { maximumFractionDigits: meters < 10000 ? 1 : 0 })} km`
 }
 
 export function formatEta(seconds) {
@@ -28,4 +35,3 @@ export function formatEta(seconds) {
   const minutes = Math.max(1, Math.round(seconds / 60))
   return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}h ${minutes % 60}min`
 }
-
