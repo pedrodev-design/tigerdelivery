@@ -1,0 +1,10 @@
+.map { position: absolute; inset: 0; overflow: hidden; background: #f3f2ed; }
+.map :global(.maplibregl-canvas) { outline: 0; }
+.map :global(.maplibregl-ctrl-attrib) { font-size: 9px; color: #74746d; background: rgba(255,255,255,.82); }
+.marker { display: grid; place-items: center; width: 28px; height: 28px; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 5px 18px rgba(24,24,20,.2); pointer-events: none; }
+.marker span { display: block; line-height: 1; }
+.driver { background: #ffd600; color: #24241f; transform: rotate(-22deg); font-size: 13px; }
+.user { width: 20px; height: 20px; background: #3278f6; box-shadow: 0 0 0 7px rgba(50,120,246,.13), 0 4px 14px rgba(50,120,246,.28); }
+.store { width: 22px; height: 22px; background: #24241f; color: #ffd600; font-size: 11px; }
+.destination { width: 22px; height: 22px; background: #ff5a1f; }
+.destination span { width: 7px; height: 7px; border-radius: 50%; background: #fff; }

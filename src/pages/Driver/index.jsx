@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -27,13 +27,16 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useAccount } from '../../hooks/useAccount'
 import { useIdentityVerification } from '../../hooks/useIdentityVerification'
+import { useDriverTracking } from '../../hooks/useDriverTracking'
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
 import { FaceScan } from '../../components/FaceScan'
+import { formatEta, getDrivingRoute } from '../../services/routing'
 import { formatCpf, formatPhone, isValidCpf, onlyDigits } from '../../utils/validators'
 import { supabase } from '../../lib/supabase'
 import styles from './Driver.module.css'
 
 const Icon = ({ icon }) => <FontAwesomeIcon icon={icon} fixedWidth aria-hidden="true" />
+const DeliveryMap = lazy(() => import('../../components/map/DeliveryMap').then(module => ({ default: module.DeliveryMap })))
 const money = value => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const vehicles = [
   { id: 'motorcycle', label: 'Moto', icon: faMotorcycle },
@@ -59,8 +62,35 @@ function Gate({ title, text, action = 'Entrar na minha conta', href = '#entrar',
   </section></Shell>
 }
 
+function DriverRouteMap({ order, location }) {
+  const [route, setRoute] = useState(null)
+  const [routeMeta, setRouteMeta] = useState(null)
+  const driverPoint = useMemo(() => location ? [Number(location.latitude), Number(location.longitude)] : null, [location])
+  const storePoint = useMemo(() => Number.isFinite(Number(order.stores?.latitude)) && Number.isFinite(Number(order.stores?.longitude)) ? [Number(order.stores.latitude), Number(order.stores.longitude)] : null, [order.stores])
+  const addressPoint = useMemo(() => Array.isArray(order.delivery_address?.point) ? order.delivery_address.point.map(Number) : null, [order.delivery_address])
+  const target = order.status === 'picked_up' ? addressPoint : storePoint
+
+  useEffect(() => {
+    if (!driverPoint || !target) return undefined
+    const controller = new AbortController()
+    getDrivingRoute([driverPoint, target], controller.signal).then(result => {
+      if (!result) return
+      setRoute(result.geometry)
+      setRouteMeta(result)
+    }).catch(error => { if (error.name !== 'AbortError') setRouteMeta(null) })
+    return () => controller.abort()
+  }, [driverPoint, target])
+
+  if (!driverPoint) return null
+  return <div className={styles.driverRouteMap}>
+    <Suspense fallback={<div className={styles.mapLoading}>Abrindo rota…</div>}><DeliveryMap center={driverPoint} zoom={13.5} driverLocation={driverPoint} storeLocation={storePoint} destination={addressPoint} route={route} /></Suspense>
+    <div className={styles.driverRouteMeta}><span>{order.status === 'picked_up' ? 'Até o cliente' : 'Até a retirada'}</span><strong>{routeMeta ? formatEta(routeMeta.duration) : 'Calculando…'}</strong></div>
+  </div>
+}
+
 function DriverHome({ account }) {
-  const [online, setOnline] = useState(true)
+  const tracking = useDriverTracking(account.user.id)
+  const { online } = tracking
   const [toast, setToast] = useState('')
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(true)
@@ -69,10 +99,15 @@ function DriverHome({ account }) {
   const firstName = account.profile?.full_name?.split(' ')[0] || 'Parceiro'
   const notify = message => { setToast(message); window.setTimeout(() => setToast(''), 2200) }
 
+  async function toggleOnline() {
+    const changed = await tracking.setAvailability(!online)
+    if (changed) notify(!online ? 'Você está online e recebendo entregas' : 'Você ficou offline')
+  }
+
   const loadOrders = useCallback(async () => {
     const { data, error } = await supabase
       .from('store_orders')
-      .select('id, status, total, driver_fee, driver_accepted_at, picked_up_at, delivery_address, payment_method, created_at, stores(name, address, phone), store_order_items(product_name, quantity)')
+      .select('id, status, total, driver_fee, driver_accepted_at, picked_up_at, delivery_address, payment_method, created_at, stores(name, address, phone, latitude, longitude), store_order_items(product_name, quantity)')
       .eq('driver_id', account.user.id)
       .order('created_at', { ascending: false })
       .limit(40)
@@ -106,10 +141,13 @@ function DriverHome({ account }) {
     <section className={styles.driverHome}>
       <div className={styles.driverIntro}>
         <div><p>Olá, {firstName}</p><h1>{online ? 'Você está disponível' : 'Pronto para rodar?'}</h1></div>
-        <button className={online ? styles.onlineSwitch : ''} onClick={() => setOnline(value => !value)} aria-pressed={online}>
-          <i /><span>{online ? 'Online' : 'Offline'}</span>
+        <button className={`${styles.statusSwitch} ${online ? styles.onlineSwitch : ''}`} onClick={toggleOnline} aria-pressed={online} disabled={tracking.changing}>
+          <span className={styles.switchTrack}><motion.i animate={{ x: online ? 18 : 0 }} transition={{ type: 'spring', stiffness: 520, damping: 32 }}><b /></motion.i></span>
+          <span className={styles.switchCopy}><AnimatePresence mode="wait" initial={false}><motion.strong key={online ? 'online' : 'offline'} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: .16 }}>{online ? 'Online' : 'Offline'}</motion.strong></AnimatePresence><small>{online ? 'Recebendo' : 'Pausado'}</small></span>
         </button>
       </div>
+
+      {tracking.error && <p className={styles.locationNotice}><Icon icon={faLocationDot} />{tracking.error}</p>}
 
       {activeOrders.length > 0 && <section className={styles.deliveryQueue}>
         <header><div><span>{activeOrders.length} {activeOrders.length === 1 ? 'entrega disponível' : 'entregas disponíveis'}</span><h2>Sua rota agora</h2></div><button onClick={loadOrders}><Icon icon={faRotate} />Atualizar</button></header>
@@ -120,8 +158,9 @@ function DriverHome({ account }) {
           const action = !accepted ? 'accept' : order.status === 'picked_up' ? 'deliver' : 'pickup'
           const actionLabel = !accepted ? 'Aceitar entrega' : order.status === 'picked_up' ? 'Finalizar entrega' : 'Confirmar retirada'
           const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(pickup)}&destination=${encodeURIComponent(destination)}`
-          return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .32, ease: [0.22, 1, 0.36, 1] }}>
             <div className={styles.deliveryCardTop}><span><Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} /></span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
+            {accepted && <DriverRouteMap order={order} location={tracking.location} />}
             <div className={styles.deliveryRoute}>
               <div><i /><span><small>Retirada</small><strong>{order.stores?.name || 'Loja TigreFood'}</strong><p>{pickup}</p></span></div>
               <div><i /><span><small>Entrega</small><strong>{order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
@@ -142,13 +181,13 @@ function DriverHome({ account }) {
 
       <section className={styles.earnings}>
         <div><small>Ganhos de hoje</small><strong>{money(todayEarnings)}</strong><span>{deliveredToday.length ? `${deliveredToday.length} ${deliveredToday.length === 1 ? 'entrega finalizada' : 'entregas finalizadas'}` : 'Nenhuma entrega finalizada'}</span></div>
-        <button onClick={() => notify(deliveredToday.length ? 'Ganhos atualizados' : 'O extrato será exibido quando houver entregas')}><Icon icon={faWallet} /></button>
+        <button onClick={() => notify(deliveredToday.length ? 'Ganhos atualizados' : 'O extrato será exibido quando houver entregas')} aria-label="Ver ganhos"><Icon icon={faWallet} /></button>
       </section>
 
       <div className={styles.metrics}>
         <article><Icon icon={faReceipt} /><div><strong>{deliveredToday.length}</strong><span>entregas hoje</span></div></article>
         <article><Icon icon={faStar} /><div><strong>—</strong><span>avaliação</span></div></article>
-        <article><Icon icon={faClock} /><div><strong>0h</strong><span>tempo online</span></div></article>
+        <article><Icon icon={faClock} /><div><strong>{online ? 'Agora' : '0h'}</strong><span>tempo online</span></div></article>
       </div>
 
       <section className={styles.driverMenu}>

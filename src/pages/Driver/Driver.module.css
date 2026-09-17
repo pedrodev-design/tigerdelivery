@@ -14,10 +14,20 @@
 .driverIntro { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .driverIntro p { color: #707268; font-size: 14px; }
 .driverIntro h1 { margin-top: 4px; font-family: var(--font-display); font-size: clamp(29px, 4vw, 45px); letter-spacing: -.045em; }
-.driverIntro button { display: flex; align-items: center; gap: 9px; min-width: 116px; height: 46px; padding: 5px 15px 5px 6px; border: 0; border-radius: 24px; background: #d9dad5; color: #5e6058; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
-.driverIntro button i { width: 36px; height: 36px; border-radius: 50%; background: #fff; transition: transform .2s ease; }
-.driverIntro .onlineSwitch { background: #20211d; color: #fff; }
-.driverIntro .onlineSwitch i { background: #ffda00; transform: rotate(8deg); }
+.statusSwitch { display: flex; min-width: 138px; height: 52px; align-items: center; gap: 10px; padding: 6px 12px 6px 8px; border: 0; border-radius: 18px; background: #e2e2dc; color: #4f5149; font: inherit; cursor: pointer; transition: background-color .36s ease, color .28s ease, box-shadow .36s ease, transform .16s ease; }
+.statusSwitch:active { transform: scale(.975); }
+.statusSwitch:disabled { cursor: wait; opacity: .7; }
+.switchTrack { position: relative; display: block; flex: 0 0 42px; width: 42px; height: 24px; border-radius: 999px; background: #c6c7c0; box-shadow: inset 0 1px 3px #20211d1d; transition: background-color .32s ease; }
+.switchTrack i { position: absolute; top: 3px; left: 3px; display: grid; width: 18px; height: 18px; place-items: center; border-radius: 50%; background: #fff; box-shadow: 0 2px 7px #20211d26; }
+.switchTrack i b { width: 5px; height: 5px; border-radius: 50%; background: #aaaBA4; transition: background-color .3s ease, box-shadow .3s ease; }
+.switchCopy { display: grid; min-width: 56px; text-align: left; }
+.switchCopy strong { font-size: 11px; line-height: 1.1; }
+.switchCopy small { margin-top: 3px; color: #82847b; font-size: 8px; font-weight: 650; transition: color .28s ease; }
+.driverIntro .onlineSwitch { background: #20211d; color: #fff; box-shadow: 0 10px 24px #20211d20; }
+.onlineSwitch .switchTrack { background: #494b44; }
+.onlineSwitch .switchTrack i { background: #ffda00; }
+.onlineSwitch .switchTrack i b { background: #20211d; box-shadow: 0 0 0 3px #20211d14; }
+.onlineSwitch .switchCopy small { color: #bfc1b9; }
 .availabilityCard { display: grid; grid-template-columns: 86px 1fr; gap: 24px; align-items: center; min-height: 176px; margin-top: 30px; padding: 30px; border-radius: 28px; background: #20211d; color: #fff; overflow: hidden; }
 .availabilityCard.available { background: #183e2b; }
 .radar { position: relative; display: grid; place-items: center; width: 78px; height: 78px; border-radius: 50%; background: #ffda00; color: #20211d; font-size: 26px; }
@@ -39,6 +49,12 @@
 .deliveryCardTop small { color: #7a7c73; font-size: 9px; font-weight: 700; }
 .deliveryCardTop strong { margin-top: 3px; font-family: var(--font-display); font-size: 16px; }
 .deliveryCardTop > b { padding: 7px 10px; border-radius: 10px; background: #e6f4e9; color: #24783b; font-size: 12px; white-space: nowrap; }
+.locationNotice { display: flex; align-items: center; gap: 9px; margin-top: 16px; padding: 12px 14px; border-radius: 13px; background: #fff0eb; color: #973f29; font-size: 10px; }
+.driverRouteMap { position: relative; height: 240px; margin-top: 18px; overflow: hidden; border-radius: 18px; background: #ecebe5; }
+.mapLoading { position: absolute; inset: 0; display: grid; place-items: center; background: #ecebe5; color: #777970; font-size: 10px; font-weight: 700; }
+.driverRouteMeta { position: absolute; z-index: 5; right: 12px; bottom: 12px; left: 12px; display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border-radius: 13px; background: rgba(32,33,29,.92); color: #fff; backdrop-filter: blur(10px); }
+.driverRouteMeta span { color: #d3d5cd; font-size: 9px; }
+.driverRouteMeta strong { color: #ffda00; font-size: 11px; }
 .deliveryRoute { position: relative; display: grid; gap: 20px; margin-top: 22px; padding: 0 2px; }
 .deliveryRoute::before { position: absolute; top: 12px; bottom: 12px; left: 6px; width: 2px; border-left: 2px dashed #d8d8d1; content: ''; }
 .deliveryRoute > div { position: relative; z-index: 1; display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 13px; }
@@ -151,8 +167,7 @@
   .driverHome { padding: 28px 17px 58px; }
   .driverIntro { align-items: flex-start; }
   .driverIntro h1 { font-size: 29px; }
-  .driverIntro button { min-width: 104px; height: 42px; }
-  .driverIntro button i { width: 32px; height: 32px; }
+  .statusSwitch { min-width: 126px; height: 48px; padding-right: 9px; }
   .availabilityCard { grid-template-columns: 58px 1fr; gap: 16px; min-height: 170px; padding: 22px 18px; border-radius: 23px; }
   .radar { width: 56px; height: 56px; font-size: 19px; }
   .availabilityCard h2 { font-size: 21px; }

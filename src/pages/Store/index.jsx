@@ -7,15 +7,12 @@ import {
   faBoxOpen,
   faCheck,
   faChevronRight,
-  faCircleCheck,
   faClock,
-  faGear,
   faIdCard,
   faPlus,
   faReceipt,
   faRotate,
   faStore,
-  faTag,
   faToggleOn,
   faTrash,
   faUser,
@@ -86,7 +83,20 @@ function StoreStatus({ store, onEdit }) {
 function Overview({ store, products, orders, onTab }) {
   const todayOrders = orders.filter(item => new Date(item.created_at).toDateString() === new Date().toDateString())
   const sales = todayOrders.reduce((sum, item) => sum + Number(item.total || 0), 0)
-  return <div className={styles.overview}><section className={styles.welcomeCard}><div><small>Hoje na sua loja</small><h2>{store.is_open ? 'Você está recebendo pedidos' : 'A loja está fechada'}</h2><p>{store.is_open ? 'Fique de olho na fila e aceite os próximos pedidos.' : 'Abra a loja quando estiver pronto para começar.'}</p></div><span><Icon icon={store.is_open ? faCircleCheck : faClock} /></span></section><section className={styles.stats}><article><span><Icon icon={faReceipt} /></span><div><small>Pedidos hoje</small><strong>{todayOrders.length}</strong></div></article><article><span><Icon icon={faTag} /></span><div><small>Vendas hoje</small><strong>{money(sales)}</strong></div></article><article><span><Icon icon={faBowlFood} /></span><div><small>Itens ativos</small><strong>{products.filter(item => item.available).length}</strong></div></article></section><section className={styles.nextActions}><header><div><h2>Próximos passos</h2><p>Deixe sua operação pronta para o primeiro pedido.</p></div></header><button onClick={() => onTab('menu')}><span><Icon icon={faBowlFood} /><strong>Monte seu cardápio<small>{products.length ? 'Revise seus itens e preços' : 'Adicione seu primeiro produto'}</small></strong></span><Icon icon={faChevronRight} /></button><button onClick={() => onTab('orders')}><span><Icon icon={faReceipt} /><strong>Acompanhe os pedidos<small>Veja a fila assim que ela começar</small></strong></span><Icon icon={faChevronRight} /></button></section></div>
+  const activeOrders = orders.filter(item => !['delivered', 'cancelled'].includes(item.status))
+  const latestOrders = orders.slice(0, 4)
+  const labels = { new: 'Novo', confirmed: 'Confirmado', preparing: 'Em preparo', ready: 'Pronto', picked_up: 'Saiu para entrega', delivered: 'Entregue', cancelled: 'Cancelado' }
+  return <div className={styles.overview}>
+    <section className={`${styles.operationLead} ${store.is_open ? styles.operationOpen : ''}`}>
+      <div><span className={styles.liveStatus}><i />{store.is_open ? 'Loja aberta agora' : 'Atendimento pausado'}</span><h2>{store.is_open ? activeOrders.length ? `${activeOrders.length} ${activeOrders.length === 1 ? 'pedido precisa' : 'pedidos precisam'} da equipe` : 'Tudo certo para o próximo pedido' : 'Abra a loja quando a equipe estiver pronta'}</h2><p>{store.is_open ? 'Pedidos novos entram direto na fila e ficam destacados até serem aceitos.' : 'Cardápio e dados continuam disponíveis enquanto a loja está fechada.'}</p></div>
+      <button onClick={() => onTab('orders')}>Abrir fila <Icon icon={faArrowRight} /></button>
+    </section>
+    <section className={styles.operationStats}><dl><div><dt>Pedidos hoje</dt><dd>{todayOrders.length}</dd><small>{activeOrders.length} em andamento</small></div><div><dt>Vendas hoje</dt><dd>{money(sales)}</dd><small>Valor bruto dos pedidos</small></div><div><dt>Cardápio ativo</dt><dd>{products.filter(item => item.available).length}</dd><small>de {products.length} itens cadastrados</small></div></dl></section>
+    <section className={styles.overviewGrid}>
+      <div className={styles.recentOrders}><header><div><h2>Pedidos recentes</h2><p>Acompanhe o que acabou de entrar.</p></div><button onClick={() => onTab('orders')}>Ver todos</button></header>{latestOrders.length ? <div>{latestOrders.map(order => <button key={order.id} onClick={() => onTab('orders')}><span className={styles.orderNumber}>#{order.id.slice(0, 5).toUpperCase()}</span><strong>{labels[order.status]}</strong><small>{new Date(order.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small><b>{money(order.total)}</b><Icon icon={faChevronRight} /></button>)}</div> : <p className={styles.compactEmpty}>Nenhum pedido recebido ainda.</p>}</div>
+      <aside className={styles.shiftPanel}><span>Turno de hoje</span><h2>{store.is_open ? 'Operação ativa' : 'Loja pausada'}</h2><p>{products.filter(item => item.available).length === products.length ? 'Todos os itens estão disponíveis.' : `${products.filter(item => !item.available).length} itens estão pausados no cardápio.`}</p><button onClick={() => onTab('menu')}><Icon icon={faBowlFood} />Revisar cardápio<Icon icon={faArrowRight} /></button></aside>
+    </section>
+  </div>
 }
 
 function MenuManager({ store, onChanged }) {
@@ -124,7 +134,7 @@ function StoreHome({ account }) {
   useEffect(() => { const id = window.setTimeout(() => loadOverview(), 0); return () => window.clearTimeout(id) }, [loadOverview])
   async function toggleOpen() { setSaving(true); await supabase.from('stores').update({ is_open: !store.is_open }).eq('id', store.id); await account.refresh(); setSaving(false) }
   const firstName = account.profile?.full_name?.split(' ')[0] || 'lojista'
-  return <main className={styles.dashboard}><aside className={styles.sidebar}><a href="#catalogo" className={styles.sideBrand}><span><Icon icon={faStore} /></span><div><strong>TigreFood</strong><small>Central da loja</small></div></a><nav><button className={tab === 'overview' ? styles.navActive : ''} onClick={() => setTab('overview')}><Icon icon={faBoxOpen} />Visão geral</button><button className={tab === 'menu' ? styles.navActive : ''} onClick={() => setTab('menu')}><Icon icon={faBowlFood} />Cardápio{products.length > 0 && <small>{products.length}</small>}</button><button className={tab === 'orders' ? styles.navActive : ''} onClick={() => setTab('orders')}><Icon icon={faReceipt} />Pedidos</button><button><Icon icon={faGear} />Configurações</button></nav><a href="#catalogo" className={styles.backLink}><Icon icon={faArrowLeft} />Voltar ao app</a></aside><section className={styles.workspace}><header className={styles.topbar}><div><small>Painel da loja</small><h1>{store.name}</h1><p>Olá, {firstName}. Tudo certo por aí?</p></div><div className={styles.topActions}><button className={`${styles.storeSwitch} ${store.is_open ? styles.storeOpen : ''}`} onClick={toggleOpen} disabled={saving}><i />{store.is_open ? 'Loja aberta' : 'Loja fechada'}</button><span className={styles.storeAvatar}><Icon icon={faStore} /></span></div></header><div className={styles.content}>{tab === 'overview' && <Overview store={store} products={products} orders={orders} onTab={setTab} />}{tab === 'menu' && <MenuManager store={store} onChanged={loadOverview} />}{tab === 'orders' && <OrdersPanel store={store} />}</div></section></main>
+  return <main className={styles.dashboard}><aside className={styles.sidebar}><a href="#catalogo" className={styles.sideBrand}><span><Icon icon={faStore} /></span><div><strong>TigreFood</strong><small>Central da loja</small></div></a><nav><button className={tab === 'overview' ? styles.navActive : ''} onClick={() => setTab('overview')}><Icon icon={faBoxOpen} />Visão geral</button><button className={tab === 'menu' ? styles.navActive : ''} onClick={() => setTab('menu')}><Icon icon={faBowlFood} />Cardápio{products.length > 0 && <small>{products.length}</small>}</button><button className={tab === 'orders' ? styles.navActive : ''} onClick={() => setTab('orders')}><Icon icon={faReceipt} />Pedidos{orders.filter(item => item.status === 'new').length > 0 && <small>{orders.filter(item => item.status === 'new').length}</small>}</button></nav><a href="#catalogo" className={styles.backLink}><Icon icon={faArrowLeft} />Voltar ao app</a></aside><section className={styles.workspace}><header className={styles.topbar}><div><small>Central da loja</small><h1>{store.name}</h1><p>Olá, {firstName}. Acompanhe o turno por aqui.</p></div><div className={styles.topActions}><button className={`${styles.storeSwitch} ${store.is_open ? styles.storeOpen : ''}`} onClick={toggleOpen} disabled={saving} aria-pressed={store.is_open}><span className={styles.storeSwitchTrack}><motion.i animate={{ x: store.is_open ? 18 : 0 }} transition={{ type: 'spring', stiffness: 520, damping: 32 }} /></span><span>{store.is_open ? 'Loja aberta' : 'Loja fechada'}</span></button><span className={styles.storeAvatar}><Icon icon={faStore} /></span></div></header><div className={styles.content}>{tab === 'overview' && <Overview store={store} products={products} orders={orders} onTab={setTab} />}{tab === 'menu' && <MenuManager store={store} onChanged={loadOverview} />}{tab === 'orders' && <OrdersPanel store={store} />}</div></section></main>
 }
 
 export function StorePage() {

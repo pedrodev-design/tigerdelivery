@@ -213,9 +213,22 @@ export function LoginPage() {
       await supabase.auth.getSession();
     if (storedError || !stored.session)
       throw storedError || new Error("Sessão não persistida");
+    const { data: accountRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", stored.session.user.id)
+      .maybeSingle();
+    const destination =
+      accountRole?.role === "admin"
+        ? "#admin"
+        : accountRole?.role === "driver"
+          ? "#motorista"
+          : accountRole?.role === "merchant"
+            ? "#lojista"
+            : "#catalogo";
     setSuccess(true);
     await new Promise((resolve) => window.setTimeout(resolve, 320));
-    window.location.hash = "#catalogo";
+    window.location.hash = destination;
   }
 
   async function submit(event) {

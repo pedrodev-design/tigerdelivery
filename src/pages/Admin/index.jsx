@@ -690,6 +690,15 @@ export function AdminPage() {
   if (account.loading || account.role !== "admin")
     return <AccessState account={account} />;
 
+  const currentCounts = section === "drivers" ? counts : storeCounts;
+  const sectionName = section === "drivers" ? "motoristas" : "lojas";
+  const adminName = account.profile?.full_name || "Administrador TigreFood";
+  const today = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  }).format(new Date());
+
   return (
     <main className={styles.page}>
       <aside className={styles.sidebar}>
@@ -727,22 +736,44 @@ export function AdminPage() {
       <section className={styles.workspace}>
         <header className={styles.topbar}>
           <div>
-            <small>Painel administrativo</small>
-            <h1>{section === "drivers" ? "Entregadores" : "Lojas"}</h1>
+            <small>Operação TigreFood</small>
+            <h1>{section === "drivers" ? "Motoristas" : "Lojas parceiras"}</h1>
           </div>
-          <span className={styles.adminAvatar}>
-            {account.profile?.avatar_url ? (
-              <img
-                src={account.profile.avatar_url}
-                alt=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <Icon icon={faUser} />
-            )}
-          </span>
+          <div className={styles.adminIdentity}>
+            <div><strong>{adminName}</strong><small>Administrador</small></div>
+            <span className={styles.adminAvatar}>
+              {account.profile?.avatar_url ? (
+                <img
+                  src={account.profile.avatar_url}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <Icon icon={faUser} />
+              )}
+            </span>
+          </div>
         </header>
         <div className={styles.content}>
+          <section className={styles.pageLead}>
+            <div><span>{today}</span><h2>Fila de {sectionName}</h2><p>Revise somente o que precisa de decisão e acompanhe o que já foi liberado.</p></div>
+            <div className={styles.syncState}><i />Dados atualizados</div>
+          </section>
+          <section className={styles.summary}>
+            <article className={styles.summaryPriority}>
+              <span><Icon icon={faUserClock} /></span>
+              <div><small>Precisam de análise</small><strong>{currentCounts.pending}</strong></div>
+              <em>{currentCounts.pending ? "Ação necessária" : "Fila em dia"}</em>
+            </article>
+            <article>
+              <span><Icon icon={faCircleCheck} /></span>
+              <div><small>Aprovados</small><strong>{currentCounts.approved}</strong></div>
+            </article>
+            <article>
+              <span><Icon icon={faUsers} /></span>
+              <div><small>Total recebido</small><strong>{currentCounts.all}</strong></div>
+            </article>
+          </section>
           {section === "stores" ? (
             <StoreQueue
               stores={stores}
@@ -756,36 +787,6 @@ export function AdminPage() {
             />
           ) : (
             <>
-              <section className={styles.summary}>
-                <article>
-                  <span>
-                    <Icon icon={faUserClock} />
-                  </span>
-                  <div>
-                    <small>Aguardando análise</small>
-                    <strong>{counts.pending}</strong>
-                  </div>
-                </article>
-                <article>
-                  <span>
-                    <Icon icon={faCircleCheck} />
-                  </span>
-                  <div>
-                    <small>Motoristas aprovados</small>
-                    <strong>{counts.approved}</strong>
-                  </div>
-                </article>
-                <article>
-                  <span>
-                    <Icon icon={faUsers} />
-                  </span>
-                  <div>
-                    <small>Total de cadastros</small>
-                    <strong>{counts.all}</strong>
-                  </div>
-                </article>
-              </section>
-
               <section className={styles.queue}>
                 <header>
                   <div>

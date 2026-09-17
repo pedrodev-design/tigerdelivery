@@ -128,25 +128,27 @@
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 0;
+  border-bottom: 1px solid #dcdcd5;
 }
 .summary article {
   display: flex;
-  min-height: 126px;
+  min-height: 104px;
   align-items: center;
-  gap: 18px;
-  padding: 22px;
-  border-radius: 21px;
-  background: #fff;
+  gap: 13px;
+  padding: 14px 22px;
+  border-left: 1px solid #dcdcd5;
 }
+.summary article:first-child { padding-left: 0; border-left: 0; }
 .summary article > span {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 15px;
-  background: #fff4a8;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #e9e8e1;
   color: #846f00;
+  font-size: 12px;
 }
 .summary article:first-child > span {
   background: #ffda00;
@@ -168,13 +170,13 @@
 .summary strong {
   margin-top: 5px;
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 26px;
 }
 .queue {
-  margin-top: 20px;
-  padding: 28px;
-  border-radius: 24px;
-  background: #fff;
+  margin-top: 28px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 .queue > header {
   display: flex;
@@ -795,17 +797,21 @@
   }
   .summary {
     grid-template-columns: 1fr 1fr;
-    gap: 9px;
+    gap: 0;
   }
   .summary article {
-    min-height: 105px;
+    min-height: 88px;
     gap: 12px;
-    padding: 15px;
-    border-radius: 18px;
+    padding: 14px 12px;
+    border-radius: 0;
   }
+  .summary article:first-child { padding-left: 0; }
   .summary article:last-child {
     grid-column: 1 / -1;
-    min-height: 82px;
+    min-height: 70px;
+    padding-left: 0;
+    border-top: 1px solid #dcdcd5;
+    border-left: 0;
   }
   .summary article > span {
     width: 40px;
@@ -815,8 +821,8 @@
     font-size: 24px;
   }
   .queue {
-    padding: 20px 14px;
-    border-radius: 21px;
+    padding: 20px 0;
+    border-radius: 0;
   }
   .queue > header button {
     width: 40px;
@@ -871,4 +877,62 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Operational workspace refinement */
+.page { background: #f3f2ee; }
+.sidebar { width: 248px; padding: 30px 20px 22px; background: #191a17; }
+.brand { padding: 0 8px 38px; }
+.brand > span { border-radius: 12px; }
+.brand small { letter-spacing: 0; text-transform: none; }
+.sidebar nav { gap: 5px; }
+.sidebar nav button { min-height: 50px; padding: 0 15px; border: 1px solid transparent; border-radius: 12px; font-weight: 650; }
+.sidebar nav .navActive { border-color: #ffffff0f; background: #2b2d28; }
+.sidebar > a { color: #9ea097; }
+.workspace { margin-left: 248px; }
+.topbar { min-height: 82px; padding: 0 clamp(24px, 4vw, 54px); border-bottom: 1px solid #e0dfd8; background: #fff; }
+.topbar small { color: #7d7f77; letter-spacing: 0; text-transform: none; }
+.topbar h1 { font-size: 25px; }
+.adminIdentity { display: flex; align-items: center; gap: 11px; }
+.adminIdentity > div { text-align: right; }
+.adminIdentity strong, .adminIdentity small { display: block; }
+.adminIdentity strong { max-width: 180px; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.adminIdentity small { margin: 3px 0 0; color: #8a8c84; font-size: 9px; font-weight: 500; }
+.adminAvatar { width: 40px; height: 40px; background: #ffda00; color: #20211d; }
+.content { width: min(100%, 1180px); padding: 36px clamp(24px, 4vw, 54px) 70px; }
+.pageLead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.pageLead span { color: #85877f; font-size: 10px; }
+.pageLead h2 { margin-top: 7px; font-family: var(--font-display); font-size: clamp(27px, 3vw, 38px); letter-spacing: -.05em; }
+.pageLead p { max-width: 540px; margin-top: 7px; color: #73756d; font-size: 11px; line-height: 1.5; }
+.syncState { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; padding: 9px 12px; border: 1px solid #dfded7; border-radius: 10px; background: #fff; color: #6c6e66; font-size: 9px; font-weight: 700; }
+.syncState i { width: 7px; height: 7px; border-radius: 50%; background: #2eaa63; box-shadow: 0 0 0 4px #2eaa6314; }
+.summary { gap: 10px; border-bottom: 0; }
+.summary article { position: relative; min-height: 106px; padding: 18px 20px; overflow: hidden; border: 1px solid #e7e6df; border-radius: 16px; background: #fff; }
+.summary article:first-child { padding-left: 20px; border-left: 1px solid #e7e6df; }
+.summary small { letter-spacing: 0; text-transform: none; }
+.summaryPriority { background: #ffda00 !important; border-color: #ffda00 !important; }
+.summaryPriority::after { position: absolute; right: -20px; bottom: -48px; width: 112px; height: 112px; border: 22px solid #20211d0a; border-radius: 50%; content: ''; }
+.summaryPriority > span { background: #20211d !important; color: #ffda00 !important; }
+.summaryPriority em { position: absolute; z-index: 1; top: 16px; right: 16px; color: #665600; font-size: 8px; font-style: normal; font-weight: 750; }
+.queue { margin-top: 18px; padding: 24px; border: 1px solid #e4e3dc; border-radius: 18px; background: #fff; }
+.filters { margin: 20px 0 8px; padding-bottom: 10px; border-bottom: 1px solid #ecebe5; }
+.filters button { min-height: 36px; border-radius: 10px; background: transparent; }
+.filters span { background: #eeeee8; }
+.empty { min-height: 230px; }
+.empty > span { width: 48px; height: 48px; border-radius: 15px; background: #f0efe9; color: #6f7169; font-size: 17px; transform: none; }
+
+@media (max-width: 760px) {
+  .sidebar { width: 100%; padding: 0 17px; }
+  .workspace { margin-left: 0; }
+  .adminIdentity > div { display: none; }
+  .topbar { min-height: 78px; }
+  .content { padding: 24px 14px 50px; }
+  .pageLead { align-items: flex-start; margin-bottom: 19px; }
+  .pageLead p { max-width: 260px; }
+  .syncState { padding: 8px; font-size: 0; }
+  .summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .summary article { min-height: 92px; padding: 15px 13px; border-radius: 14px; }
+  .summary article:first-child { padding-left: 13px; border-left: 1px solid #e7e6df; }
+  .summaryPriority em { display: none; }
+  .queue { padding: 18px 14px; border-radius: 16px; }
 }
