@@ -476,7 +476,7 @@ function CustomerOrderCard({ order }) {
   const isLive = order.fulfillment_type === 'delivery' && !['delivered', 'cancelled'].includes(order.status) && tracking.driverPoint
   const mapCenter = tracking.driverPoint || tracking.store || tracking.destination || defaultPoint
   const statusText = order.status === 'confirmed'
-    ? 'A loja confirmou. O motorista segue para a retirada.'
+    ? order.driver_id ? 'A loja confirmou. O motorista segue para a retirada.' : 'A loja confirmou. Estamos chamando um motorista.'
     : order.status === 'preparing'
       ? 'Seu pedido está sendo preparado.'
       : order.status === 'ready'
