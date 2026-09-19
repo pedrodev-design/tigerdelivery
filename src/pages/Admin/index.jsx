@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
+  faBell,
   faBicycle,
   faCar,
   faCheck,
@@ -25,6 +26,12 @@ import { useAccount } from "../../hooks/useAccount";
 import { LoadingOverlay } from "../../components/ui/LoadingOverlay";
 import { supabase } from "../../lib/supabase";
 import { formatCpf, formatPhone } from "../../utils/validators";
+import {
+  deliverAdminNotification,
+  playNotificationSound,
+  requestNotificationPermission,
+  showSystemNotification,
+} from "../../services/notifications";
 import styles from "./Admin.module.css";
 
 const Icon = ({ icon }) => (
@@ -527,14 +534,17 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
+  const [notificationPopup, setNotificationPopup] = useState(null);
+  const knownApplicationIds = useRef(null);
+  const knownStoreIds = useRef(null);
 
   useEffect(() => {
     document.title = "Painel administrativo — TigreFood";
   }, []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (account.role !== "admin") return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     const { data, error } = await supabase
       .from("driver_applications")
       .select(
@@ -558,13 +568,14 @@ export function AdminPage() {
         identity: identityByUser[item.user_id] || null,
       })),
     );
-    setNotice(error ? "Não foi possível carregar os cadastros." : "");
-    setLoading(false);
+    if (error) setNotice("Não foi possível carregar os cadastros.");
+    else if (!silent) setNotice("");
+    if (!silent) setLoading(false);
   }, [account.role]);
 
-  const loadStores = useCallback(async () => {
+  const loadStores = useCallback(async (silent = false) => {
     if (account.role !== "admin") return;
-    setStoreLoading(true);
+    if (!silent) setStoreLoading(true);
     const { data, error } = await supabase
       .from("stores")
       .select(
@@ -573,7 +584,7 @@ export function AdminPage() {
       .order("created_at", { ascending: false });
     setStores(data || []);
     if (error) setNotice("Não foi possível carregar os cadastros de lojas.");
-    setStoreLoading(false);
+    if (!silent) setStoreLoading(false);
   }, [account.role]);
 
   useEffect(() => {
@@ -584,6 +595,96 @@ export function AdminPage() {
     const initialLoad = window.setTimeout(() => loadStores(), 0);
     return () => window.clearTimeout(initialLoad);
   }, [loadStores]);
+
+  const presentNotification = useCallback((title, body) => {
+    setNotificationPopup({ id: Date.now(), title, body });
+    deliverAdminNotification({ title, body, tag: `tigredelivery-${Date.now()}` });
+  }, []);
+
+  useEffect(() => {
+    if (!notificationPopup) return undefined;
+    const timeout = window.setTimeout(() => setNotificationPopup(null), 5200);
+    return () => window.clearTimeout(timeout);
+  }, [notificationPopup]);
+
+  useEffect(() => {
+    if (loading) return;
+    const currentIds = new Set(applications.map((item) => item.id));
+    if (knownApplicationIds.current === null) {
+      knownApplicationIds.current = currentIds;
+      return;
+    }
+    const fresh = applications.filter((item) => !knownApplicationIds.current.has(item.id));
+    knownApplicationIds.current = currentIds;
+    if (!fresh.length) return;
+    const city = fresh[0]?.city ? ` em ${fresh[0].city}` : "";
+    presentNotification(
+      fresh.length > 1 ? `${fresh.length} novos cadastros de motoristas` : "Novo cadastro de motorista",
+      `Há ${fresh.length > 1 ? "novas solicitações" : "uma nova solicitação"}${city} esperando análise.`,
+    );
+  }, [applications, loading, presentNotification]);
+
+  useEffect(() => {
+    if (storeLoading) return;
+    const currentIds = new Set(stores.map((item) => item.id));
+    if (knownStoreIds.current === null) {
+      knownStoreIds.current = currentIds;
+      return;
+    }
+    const fresh = stores.filter((item) => !knownStoreIds.current.has(item.id));
+    knownStoreIds.current = currentIds;
+    if (!fresh.length) return;
+    presentNotification(
+      fresh.length > 1 ? `${fresh.length} novas lojas parceiras` : "Nova loja parceira",
+      fresh.length > 1
+        ? "Novos cadastros de lojas estão esperando análise."
+        : `${fresh[0]?.name || "Uma nova loja"} enviou um cadastro para análise.`,
+    );
+  }, [presentNotification, storeLoading, stores]);
+
+  useEffect(() => {
+    if (account.role !== "admin" || !account.user?.id) return undefined;
+    const channel = supabase
+      .channel(`admin-notifications-${account.user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "driver_applications" },
+        () => load(true),
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "stores" },
+        () => loadStores(true),
+      )
+      .subscribe();
+    return () => { channel.unsubscribe(); };
+  }, [account.role, account.user?.id, load, loadStores]);
+
+  useEffect(() => {
+    if (account.role !== "admin") return undefined;
+    const polling = window.setInterval(() => {
+      load(true);
+      loadStores(true);
+    }, 30000);
+    return () => window.clearInterval(polling);
+  }, [account.role, load, loadStores]);
+
+  async function testNotification() {
+    const soundPromise = playNotificationSound();
+    const permission = await requestNotificationPermission();
+    await soundPromise;
+    const title = "Notificações ativadas";
+    const body = "O painel vai avisar quando chegar um novo cadastro.";
+    setNotificationPopup({ id: Date.now(), title, body });
+    if (permission === "granted") {
+      await showSystemNotification({ title: "TigreDelivery Admin", body, tag: "tigredelivery-test" });
+      setNotice("Teste enviado. Som e notificações estão ativados.");
+    } else if (permission === "unsupported") {
+      setNotice("O som funcionou, mas este navegador não oferece notificações do sistema.");
+    } else {
+      setNotice("O som funcionou. Libere as notificações nas configurações do navegador para receber popups do sistema.");
+    }
+  }
 
   const counts = useMemo(
     () => ({
@@ -739,7 +840,9 @@ export function AdminPage() {
             <small>Operação TigreFood</small>
             <h1>{section === "drivers" ? "Motoristas" : "Lojas parceiras"}</h1>
           </div>
-          <div className={styles.adminIdentity}>
+          <div className={styles.topbarActions}>
+            <button className={styles.testNotification} onClick={testNotification}><Icon icon={faBell} /><span>Testar notificação</span></button>
+            <div className={styles.adminIdentity}>
             <div><strong>{adminName}</strong><small>Administrador</small></div>
             <span className={styles.adminAvatar}>
               {account.profile?.avatar_url ? (
@@ -752,6 +855,7 @@ export function AdminPage() {
                 <Icon icon={faUser} />
               )}
             </span>
+            </div>
           </div>
         </header>
         <div className={styles.content}>
@@ -897,6 +1001,9 @@ export function AdminPage() {
           )}
         </div>
       </section>
+      <AnimatePresence>{notificationPopup && <motion.aside key={notificationPopup.id} className={styles.notificationPopup} role="alert" initial={{ opacity: 0, y: -14, scale: .96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, x: 24, scale: .98 }} transition={{ duration: .22 }}>
+        <span><Icon icon={faBell} /></span><div><strong>{notificationPopup.title}</strong><p>{notificationPopup.body}</p></div><button onClick={() => setNotificationPopup(null)} aria-label="Fechar notificação"><Icon icon={faXmark} /></button>
+      </motion.aside>}</AnimatePresence>
       <AnimatePresence>
         {selected && (
           <ReviewPanel

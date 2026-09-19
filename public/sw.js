@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'tigredelivery-v3'
+const CACHE_VERSION = 'tigredelivery-v4'
 const APP_SHELL = [
   '/',
   '/offline.html',
@@ -54,6 +54,21 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => cached)
       return cached || network
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const targetUrl = new URL(event.notification.data?.url || '/#admin', self.location.origin).href
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async clients => {
+      const existing = clients.find(client => new URL(client.url).origin === self.location.origin)
+      if (existing) {
+        await existing.focus()
+        return existing.navigate(targetUrl)
+      }
+      return self.clients.openWindow(targetUrl)
     }),
   )
 })
