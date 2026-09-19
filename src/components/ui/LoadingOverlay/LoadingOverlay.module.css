@@ -1,6 +1,12 @@
-.overlay { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgb(24 24 18 / 48%); backdrop-filter: blur(3px); }
-.card { display: flex; width: min(100%, 250px); flex-direction: column; align-items: center; padding: 26px 24px 23px; border-radius: 20px; background: #fffdf7; color: #20211d; box-shadow: 0 20px 70px rgb(0 0 0 / 18%); text-align: center; }
-.icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #ffda00; color: #20211d; font-size: 20px; }
-.card strong { margin-top: 16px; font-family: var(--font-display); font-size: 17px; letter-spacing: -.02em; }
-.card p { margin-top: 5px; color: #777970; font-size: 11px; line-height: 1.45; }
-@media (prefers-reduced-motion: reduce) { .icon svg { animation-duration: 1.4s; } }
+.overlay { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; padding: 24px; background: rgb(255 218 0 / 92%); backdrop-filter: blur(9px) saturate(.85); }
+.loader { position: relative; display: grid; width: 92px; height: 92px; place-items: center; }
+.loader::before { position: absolute; inset: 0; border: 3px solid rgb(32 33 29 / 15%); border-top-color: #20211d; border-radius: 50%; content: ''; animation: loadingOrbit 1s linear infinite; }
+.loader::after { position: absolute; top: -2px; left: 50%; width: 9px; height: 9px; border: 2px solid #ffda00; border-radius: 50%; background: #20211d; box-shadow: 0 3px 10px rgb(32 33 29 / 28%); content: ''; transform: translateX(-50%); animation: loadingOrbitDot 1s linear infinite; transform-origin: 50% 48px; }
+.loader img { width: 62px; height: 62px; filter: drop-shadow(0 8px 13px rgb(93 72 0 / 18%)); animation: loadingTiger 1.25s ease-in-out infinite; }
+@keyframes loadingOrbit { to { transform: rotate(360deg); } }
+@keyframes loadingOrbitDot { to { transform: translateX(-50%) rotate(360deg); } }
+@keyframes loadingTiger { 0%, 100% { transform: translateY(1px) scale(.98); } 50% { transform: translateY(-3px) scale(1.03); } }
+@media (prefers-reduced-motion: reduce) {
+  .loader::before, .loader::after { animation-duration: 2.4s; }
+  .loader img { animation: none; }
+}

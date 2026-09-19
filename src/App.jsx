@@ -24,7 +24,7 @@ function App() {
     <div className="app">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div className="min-h-svh" key={routeKey} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-          <Suspense fallback={<LoadingOverlay label="Quase lá" detail="Abrindo o TigreFood..." />}>
+          <Suspense fallback={<LoadingOverlay label="Quase lá" detail="Abrindo o TigreDelivery..." />}>
             {isAuth ? <LoginPage /> : isDriver ? <DriverPage /> : isAdmin ? <AdminPage /> : isStore ? <StorePage /> : <CatalogPage />}
           </Suspense>
         </motion.div>

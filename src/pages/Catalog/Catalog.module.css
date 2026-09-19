@@ -29,7 +29,7 @@
 .address { display: flex; align-items: center; gap: 11px; background: transparent; border: 0; text-align: left; min-width: 205px; max-width: 285px; }
 .address .pin { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 11px; background: #ffda00; color: #242424; }
 .address .pin svg { width: 13px; height: 13px; }
-.address > span:nth-child(2) { display: flex; min-width: 0; }
+.addressCopy { display: flex; min-width: 0; }
 .address strong { font-size: 12px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 220px; }
 .address > svg { width: 8px; color: #96988c; }
 .headerAvatar { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
@@ -517,6 +517,13 @@
 .profileList > button > span svg, .profileList > a > span svg { width: 17px; color: #555; }
 .profileList > button > svg, .profileList > a > svg { width: 8px; color: #999; }
 .profileLogout { display: block; margin: 18px auto 0; padding: 8px 12px; border: 0; background: transparent; color: #777; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.pwaInstall { display: grid; grid-template-columns: 42px minmax(0, 1fr) 10px; align-items: center; gap: 12px; width: 100%; min-height: 68px; margin-top: 18px; padding: 11px 15px 11px 11px; border: 0; border-radius: 17px; background: #20211d; color: #fff; text-align: left; }
+.pwaInstallIcon { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: #ffda00; color: #20211d; }
+.pwaInstall > span:nth-child(2) { display: grid; gap: 3px; min-width: 0; }
+.pwaInstall strong { font-size: 13px; font-weight: 750; }
+.pwaInstall small { color: #b9bbb2; font-size: 10px; }
+.pwaInstall > svg { width: 8px; color: #ffda00; }
+.pwaInstallNotice { margin-top: 10px; padding: 11px 13px; border-radius: 12px; background: #fff7c9; color: #554a16; font-size: 11px; line-height: 1.45; }
 .profileWorkspace .topbar { display: none; }
 .profileWorkspace .main { min-height: 100svh; padding-top: 0; }
 .profilePage { width: 100%; min-height: 100svh; margin: 0; background: #f7f6f1; }
@@ -630,7 +637,7 @@
   .account { display: none; }
   .address { grid-column: 2; grid-row: 1; min-width: 0; max-width: 100%; gap: 7px; min-height: 48px; justify-content: flex-start; opacity: 1; transform: translateY(0); transition: opacity 180ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1); }
   .address .pin { display: none; }
-  .address > span:nth-child(2) { gap: 3px; }
+  .addressCopy { gap: 3px; }
   .address strong { font-size: 15px; font-weight: 720; max-width: 220px; color: #242424; }
   .address > svg { color: #242424; }
   .search { position: absolute; right: 18px; bottom: 18px; left: 18px; min-width: 0; max-width: none; margin: 0; height: 54px; border-radius: 18px; padding: 0 18px; gap: 12px; background: #fff; border: 0; box-shadow: none; color: #777; transition: left 380ms cubic-bezier(.22, 1, .36, 1), right 380ms cubic-bezier(.22, 1, .36, 1), bottom 380ms cubic-bezier(.22, 1, .36, 1), height 380ms cubic-bezier(.22, 1, .36, 1), border-radius 320ms ease; }
@@ -898,4 +905,224 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .sidebar, .categories button > span { transition: none; }
+}
+
+/* Desktop storefront */
+.desktopHeader { display: none; }
+
+@media (min-width: 801px) {
+  .layout { --ink: #1c1d19; --muted: #6e7068; --line: #dfdfd7; background: #f5f5f0; }
+  .desktopHeader { display: grid; grid-template-columns: minmax(190px, 1fr) auto minmax(190px, 1fr); align-items: center; min-height: 82px; padding: 0 clamp(28px, 4.5vw, 72px); background: #1c1d19; color: #fff; }
+  .desktopBrand { display: inline-flex; align-items: center; justify-self: start; gap: 12px; color: #fff; text-decoration: none; }
+  .desktopBrand img { width: 46px; height: 46px; padding: 7px; border-radius: 14px; background: #ffda00; }
+  .desktopBrand > span { font-family: var(--font-display); font-size: 24px; font-weight: 780; letter-spacing: -1px; }
+  .desktopBrand > span > span { color: #ffda00; }
+  .desktopHeader nav { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 5px; border: 1px solid #ffffff17; border-radius: 15px; background: #ffffff08; }
+  .desktopHeader nav button { position: relative; display: inline-flex; align-items: center; gap: 9px; min-height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: transparent; color: #bfc1b9; font-size: 13px; font-weight: 650; transition: color .18s ease, background .18s ease, transform .18s ease; }
+  .desktopHeader nav button:hover { color: #fff; transform: translateY(-1px); }
+  .desktopHeader nav button > svg { width: 15px; height: 15px; }
+  .desktopHeader nav .navActive { background: #ffda00; color: #1c1d19; }
+  .desktopHeader nav small { display: grid; min-width: 18px; height: 18px; place-items: center; padding: 0 4px; border-radius: 6px; background: #fff; color: #1c1d19; font-size: 9px; }
+  .desktopHelp { display: inline-flex; align-items: center; justify-self: end; gap: 9px; min-height: 40px; padding: 0 4px; border: 0; background: transparent; color: #c6c8c0; font-size: 12px; font-weight: 650; }
+  .desktopHelp svg { width: 16px; }
+  .workspace { margin-left: 0; }
+  .topbar { height: 74px; gap: clamp(16px, 2vw, 28px); padding: 0 clamp(28px, 4.5vw, 72px); border-color: #e4e4dd; background: rgba(255, 255, 253, .94); box-shadow: 0 8px 28px #1c1d1908; backdrop-filter: blur(18px); }
+  .address { min-width: 190px; max-width: 250px; padding-right: 18px; border-right: 1px solid #e3e3dc; }
+  .address .pin { width: 38px; height: 38px; flex-basis: 38px; border-radius: 12px; }
+  .address strong { font-size: 13px; }
+  .search { height: 46px; max-width: 620px; margin: 0 auto; padding: 0 17px; border: 1px solid #e4e4dc; border-radius: 14px; background: #f3f3ee; }
+  .search input { font-size: 14px; }
+  .account { min-height: 42px; padding: 0 6px; font-size: 13px; }
+  .bag { height: 46px; padding: 0 16px; border-radius: 13px; font-size: 13px; box-shadow: 0 8px 20px #c8a90022; }
+  .main { width: min(100%, 1540px); max-width: none; padding: 32px clamp(28px, 4.5vw, 72px) 0; }
+  .pageContent { min-height: calc(100dvh - 188px); }
+  .discoveryDeck { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(320px, .72fr); gap: 16px; height: clamp(420px, 34vw, 500px); margin-bottom: 34px; }
+  .discoveryDeck .heroCarousel { height: 100%; border-radius: 24px; background: #ffda00; box-shadow: 0 18px 50px #1c1d1914; }
+  .discoveryDeck .heroViewport, .discoveryDeck .heroTrack, .discoveryDeck .heroSlide, .discoveryDeck .imageBannerButton { height: 100%; }
+  .discoveryDeck .imageBanner { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+  .discoveryDeck .heroDots { left: 25px; bottom: 22px; }
+  .discoveryDeck .heroArrows { right: 22px; bottom: 19px; }
+  .discoveryPanel { min-width: 0; overflow: hidden; padding: 30px 28px 24px; border-radius: 24px; background: #1c1d19; color: #fff; box-shadow: inset 0 4px #ffda00; }
+  .discoveryPanel > span { color: #ffda00; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .discoveryPanel > h1 { max-width: 320px; margin-top: 10px; font-family: var(--font-display); font-size: clamp(27px, 2.2vw, 38px); font-weight: 720; line-height: 1.02; letter-spacing: -1.2px; }
+  .discoveryPanel > p { max-width: 310px; margin-top: 10px; color: #aeb1a8; font-size: 12px; line-height: 1.5; }
+  .discoveryPanel .categories { overflow: visible; margin: 22px 0 0; padding: 0; cursor: default; }
+  .discoveryPanel .categoryTrack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+  .discoveryPanel .categories button { min-width: 0; min-height: 74px; gap: 3px; justify-content: center; padding: 7px 3px; border: 1px solid #ffffff0d; border-radius: 13px; background: #ffffff09; color: #c8cac2; }
+  .discoveryPanel .categories button:hover { background: #ffffff12; color: #fff; }
+  .discoveryPanel .categories button > span { width: 40px; height: 38px; }
+  .discoveryPanel .categories img { width: 39px; height: 39px; }
+  .discoveryPanel .categories strong { max-width: 100%; overflow: hidden; font-size: 9px; text-overflow: ellipsis; }
+  .discoveryPanel .categories .categoryActive { border-color: #ffda00; background: #ffda00; color: #1c1d19; }
+  .discoveryPanel .categories .categoryActive > span { transform: none; }
+  .discoveryPanel .categories .categoryActive strong::after { display: none; }
+  .results { padding: 30px; border: 1px solid #e6e6df; border-radius: 28px; background: #fff; box-shadow: 0 20px 60px #1c1d1908; }
+  .sectionHeading h2 { font-size: 28px; letter-spacing: -.75px; }
+  .filterButton { min-height: 42px; padding: 0 15px; border: 1px solid #e5e5de; border-radius: 12px; background: #f5f5f0; font-size: 12px; font-weight: 700; }
+  .filterRow { min-height: 58px; margin: 18px 0 26px; padding: 8px; border-radius: 16px; background: #f5f5f0; }
+  .filterRow > button { background: #fff; }
+  .sortControl { padding-right: 8px; }
+  .productGrid { gap: 28px 18px; }
+  .card { padding: 9px; border: 1px solid #ecece6; border-radius: 20px; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+  .card:hover { z-index: 2; border-color: #d8d8cf; box-shadow: 0 16px 36px #1c1d1912; transform: translateY(-3px); }
+  .cardImage { height: 180px; border-radius: 14px; }
+  .cardBody { padding: 14px 7px 8px; }
+  .productTitle h3 { font-size: 17px; }
+  .priceRow strong { font-size: 19px; }
+  .discoveryFeed { gap: 46px; }
+  .feedSection { gap: 20px; }
+  .feedSection h2 { font-size: 25px; }
+  .restaurantList { gap: 14px; }
+  .restaurantCard { grid-template-columns: 126px minmax(0, 1fr) 36px; gap: 16px; padding: 13px; border: 1px solid #ecece5; border-radius: 20px; background: #fff; transition: border-color .18s ease, transform .18s ease; }
+  .restaurantCard:hover { border-color: #d7d7ce; transform: translateY(-2px); }
+  .restaurantPhoto { width: 126px; height: 112px; border-radius: 15px; }
+  .restaurantInfo { padding-top: 6px; }
+  .restaurantInfo h3 { font-size: 16px; }
+  .promoImageCard { border-radius: 20px; }
+  .footer { padding: 32px 4px 38px; }
+}
+
+@media (min-width: 1360px) {
+  .cardImage { height: 205px; }
+}
+
+@media (min-width: 1200px) {
+  .productGrid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (max-width: 800px) {
+  .desktopHeader { display: none; }
+  .discoveryDeck { display: block; }
+  .discoveryPanel > span, .discoveryPanel > h1, .discoveryPanel > p { display: none; }
+}
+
+/* Desktop follows the same visual language as the mobile storefront. */
+@media (min-width: 801px) {
+  .layout { background: #fff; }
+  .desktopHeader { min-height: 72px; padding: 0 clamp(28px, 4vw, 56px); background: #ffda00; color: #242424; }
+  .desktopBrand { color: #242424; }
+  .desktopBrand img { width: 44px; height: 44px; padding: 7px; border-radius: 14px; background: #fff; }
+  .desktopBrand > span { font-size: 25px; letter-spacing: -1.2px; }
+  .desktopBrand > span > span { margin-left: 1px; color: #242424; font-weight: 560; }
+  .desktopHeader nav { gap: 2px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .desktopHeader nav button { min-height: 42px; padding: 0 15px; color: #4e4a36; }
+  .desktopHeader nav button::after { position: absolute; right: 15px; bottom: -4px; left: 15px; height: 2px; border-radius: 2px; background: #242424; content: ''; opacity: 0; transform: scaleX(.45); transition: opacity .18s ease, transform .18s ease; }
+  .desktopHeader nav button:hover { color: #242424; }
+  .desktopHeader nav .navActive { background: transparent; color: #242424; box-shadow: none; }
+  .desktopHeader nav .navActive::after { opacity: 1; transform: scaleX(1); }
+  .desktopHeader nav small { background: #242424; color: #fff; }
+  .desktopHelp { color: #413d28; }
+  .topbar { height: 84px; gap: clamp(14px, 2vw, 24px); padding: 0 clamp(28px, 4vw, 56px); border: 0; background: #ffda00; box-shadow: 0 12px 32px #6e5d0014; backdrop-filter: none; }
+  .address { min-width: 190px; max-width: 250px; padding-right: 0; border-right: 0; }
+  .address .pin { width: 42px; height: 42px; flex-basis: 42px; border-radius: 14px; background: #242424; color: #ffda00; }
+  .address strong { color: #242424; font-size: 13px; }
+  .address > svg { color: #49442c; }
+  .search { height: 52px; max-width: 650px; padding: 0 18px; border: 0; border-radius: 17px; background: #fff; box-shadow: 0 8px 24px #9b820018; }
+  .search:focus-within { box-shadow: 0 0 0 3px #242424, 0 8px 24px #9b820018; }
+  .search input { font-size: 14px; }
+  .account { min-height: 46px; padding: 0 14px; border-radius: 14px; background: #fff; }
+  .account svg { color: #242424; }
+  .bag { height: 48px; padding: 0 14px; border: 0; border-radius: 14px; background: #242424; color: #fff; box-shadow: 0 8px 22px #6d5c001f; }
+  .bag b { background: #f44076; color: #fff; }
+  .main { width: min(100%, 1320px); max-width: none; padding: 28px clamp(28px, 4vw, 56px) 0; }
+  .pageContent { min-height: calc(100dvh - 184px); }
+  .discoveryDeck { display: block; height: auto; margin-bottom: 28px; }
+  .discoveryDeck .heroCarousel { height: clamp(500px, 43vw, 610px); border-radius: 24px; background: #ffda00; box-shadow: none; }
+  .discoveryDeck .imageBanner { object-fit: contain; object-position: center; }
+  .discoveryDeck .categories { overflow: hidden; margin: 0; padding: 24px 0 4px; cursor: grab; }
+  .discoveryDeck .categoryTrack { display: flex; align-items: flex-start; gap: 12px; }
+  .discoveryDeck .categories button { flex: 1 1 0; min-width: 0; min-height: 0; gap: 8px; justify-content: flex-start; padding: 0; border: 0; border-radius: 0; background: transparent; color: #6d7067; }
+  .discoveryDeck .categories button:hover { background: transparent; color: #242424; }
+  .discoveryDeck .categories button > span { width: 72px; height: 68px; }
+  .discoveryDeck .categories img { width: 66px; height: 66px; }
+  .discoveryDeck .categories strong { max-width: none; overflow: visible; font-size: 12px; text-overflow: clip; }
+  .discoveryDeck .categories .categoryActive { border: 0; background: transparent; color: #242424; }
+  .discoveryDeck .categories .categoryActive > span { transform: translateY(-3px); }
+  .discoveryDeck .categories .categoryActive strong::after { display: block; }
+  .results { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .sectionHeading h2 { font-size: 27px; letter-spacing: -.7px; }
+  .filterButton { min-height: 42px; padding: 0 15px; border: 0; border-radius: 13px; background: #efefeb; }
+  .filterRow { min-height: 42px; margin: 18px 0 28px; padding: 0; border-radius: 0; background: transparent; }
+  .filterRow > button { background: #efefeb; }
+  .sortControl { padding-right: 0; }
+  .productGrid { gap: 32px 18px; }
+  .card { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .card:hover { border-color: transparent; box-shadow: none; transform: translateY(-3px); }
+  .cardImage { height: 185px; border-radius: 18px; }
+  .cardBody { padding: 15px 3px 0; }
+  .productTitle h3 { font-size: 17px; }
+  .discoveryFeed { gap: 46px; }
+  .restaurantList { gap: 28px 34px; }
+  .restaurantCard { grid-template-columns: 126px minmax(0, 1fr) 36px; gap: 16px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .restaurantCard:hover { border-color: transparent; transform: translateY(-2px); }
+  .restaurantPhoto { width: 126px; height: 112px; border-radius: 17px; }
+  .promoImageCard { border-radius: 22px; }
+  .footer { padding: 30px 0 38px; }
+}
+
+@media (min-width: 801px) {
+  .desktopHelp { min-height: 44px; padding: 0 13px 0 8px; border-radius: 14px; background: #ffffff70; color: #242424; }
+  .desktopHelp img { width: 29px; height: 29px; object-fit: contain; filter: drop-shadow(0 2px 3px #9b6a0030); }
+  .address { min-width: 205px; max-width: 275px; min-height: 52px; gap: 9px; padding: 0 15px; border: 0; border-radius: 17px; background: #fff; box-shadow: 0 8px 24px #9b820018; }
+  .addressCopy { display: flex !important; flex: 1; min-width: 0; }
+  .addressCopy strong { max-width: 230px; font-size: 13px; line-height: 1.25; }
+  .bag { height: 52px; padding: 0 14px 0 16px; border-radius: 17px; background: #fff; color: #242424; box-shadow: 0 8px 24px #9b820018; }
+  .bag b { min-width: 22px; height: 22px; border-radius: 8px; background: #242424; color: #fff; }
+  .accountAvatarButton { display: grid; width: 50px; min-width: 50px; height: 50px; min-height: 50px; place-items: center; overflow: hidden; padding: 0; border: 3px solid #fff; border-radius: 50%; background: #f4f3ee; color: #242424; box-shadow: 0 8px 22px #8f770020; }
+  .accountAvatarButton img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .accountAvatarButton svg { width: 17px; height: 17px; color: #242424; }
+}
+
+.helpPage { display: grid; gap: 24px; width: min(100%, 1060px); margin: 0 auto 56px; }
+.helpHero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 210px; align-items: center; min-height: 250px; overflow: hidden; padding: 38px 44px; border-radius: 28px; background: #ffda00; color: #242424; }
+.helpHero::after { position: absolute; right: 145px; bottom: -110px; width: 260px; height: 260px; border: 42px solid #ffffff42; border-radius: 50%; content: ''; }
+.helpHero > div { position: relative; z-index: 1; }
+.helpHero span { font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.helpHero h2 { max-width: 540px; margin-top: 9px; font-family: var(--font-display); font-size: clamp(36px, 4.5vw, 58px); font-weight: 760; line-height: .95; letter-spacing: -2px; }
+.helpHero p { max-width: 480px; margin-top: 14px; font-size: 14px; line-height: 1.55; }
+.helpHero > img { position: relative; z-index: 1; justify-self: center; width: 176px; height: 176px; object-fit: contain; filter: drop-shadow(0 16px 18px #9d65003b); transform: rotate(7deg); }
+.helpShortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.helpShortcuts button { display: grid; grid-template-columns: 44px minmax(0, 1fr) 12px; align-items: center; gap: 13px; min-height: 104px; padding: 16px; border: 0; border-radius: 19px; background: #f3f2ed; color: #242424; font: inherit; text-align: left; transition: background .18s ease, transform .18s ease; }
+.helpShortcuts button:hover { background: #ecebe5; transform: translateY(-2px); }
+.helpShortcuts button > span { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 14px; background: #ffda00; }
+.helpShortcuts button > span svg { width: 16px; }
+.helpShortcuts button > div { min-width: 0; }
+.helpShortcuts strong, .helpShortcuts small { display: block; }
+.helpShortcuts strong { font-size: 13px; }
+.helpShortcuts small { margin-top: 4px; color: #777970; font-size: 10px; line-height: 1.4; }
+.helpShortcuts button > svg { width: 9px; color: #8d8f86; }
+.helpFaq { display: grid; grid-template-columns: .42fr 1fr; gap: 48px; padding: 40px 42px; border-radius: 28px; background: #1c1d19; color: #fff; }
+.helpFaq > header span { color: #ffda00; font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.helpFaq > header h2 { max-width: 260px; margin-top: 10px; font-family: var(--font-display); font-size: 31px; line-height: 1.05; letter-spacing: -.9px; }
+.helpFaq > div { min-width: 0; }
+.helpFaq details { border-bottom: 1px solid #ffffff18; }
+.helpFaq details:first-child { border-top: 1px solid #ffffff18; }
+.helpFaq summary { display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; min-height: 62px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.helpFaq summary::-webkit-details-marker { display: none; }
+.helpFaq summary span { color: #ffda00; font-family: var(--font-display); font-size: 12px; }
+.helpFaq summary > svg { width: 12px; color: #ffda00; transition: transform .2s ease; }
+.helpFaq details[open] summary > svg { transform: rotate(45deg); }
+.helpFaq details p { max-width: 620px; padding: 0 30px 18px 42px; color: #bfc1b9; font-size: 12px; line-height: 1.65; }
+
+@media (min-width: 801px) {
+  .desktopHelp { min-height: 40px; padding: 0 4px; border-radius: 0; background: transparent; color: #413d28; }
+  .desktopHelp svg { width: 16px; }
+}
+
+@media (max-width: 600px) {
+  .helpPage { gap: 16px; margin-bottom: 24px; }
+  .helpHero { grid-template-columns: minmax(0, 1fr) 90px; min-height: 168px; padding: 22px 18px; border-radius: 22px; }
+  .helpHero::after { right: 38px; bottom: -75px; width: 170px; height: 170px; border-width: 28px; }
+  .helpHero h2 { margin-top: 7px; font-size: 31px; letter-spacing: -1.1px; }
+  .helpHero p { margin-top: 9px; font-size: 11px; line-height: 1.45; }
+  .helpHero > img { width: 88px; height: 88px; }
+  .helpShortcuts { grid-template-columns: 1fr; gap: 8px; }
+  .helpShortcuts button { grid-template-columns: 42px minmax(0, 1fr) 10px; min-height: 76px; padding: 11px 13px; border-radius: 17px; }
+  .helpShortcuts button > span { width: 42px; height: 42px; border-radius: 13px; }
+  .helpShortcuts strong { font-size: 12px; }
+  .helpFaq { display: block; padding: 24px 18px; border-radius: 22px; }
+  .helpFaq > header { margin-bottom: 20px; }
+  .helpFaq > header h2 { max-width: 230px; margin-top: 7px; font-size: 25px; }
+  .helpFaq summary { grid-template-columns: 26px minmax(0, 1fr) 16px; gap: 8px; min-height: 58px; font-size: 12px; }
+  .helpFaq details p { padding: 0 12px 17px 34px; font-size: 11px; }
 }

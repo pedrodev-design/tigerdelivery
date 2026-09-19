@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffda00" />
+    <title>Sem conexão · TigreDelivery</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      body { min-height: 100dvh; display: grid; place-items: center; padding: 28px; background: #ffda00; color: #20211d; font-family: system-ui, sans-serif; }
+      main { width: min(100%, 430px); padding: 32px; border-radius: 28px; background: #fff; box-shadow: 0 22px 70px #5e4f0024; }
+      img { width: 84px; height: 84px; margin-bottom: 26px; border-radius: 24px; }
+      small { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      h1 { margin-top: 9px; font-size: clamp(30px, 10vw, 45px); line-height: .98; letter-spacing: -.05em; }
+      p { margin-top: 16px; color: #64645d; font-size: 15px; line-height: 1.55; }
+      button { width: 100%; min-height: 52px; margin-top: 26px; border: 0; border-radius: 16px; background: #20211d; color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/pwa-192.png" alt="" />
+      <small>TigreDelivery</small>
+      <h1>A internet deu uma pausa.</h1>
+      <p>Confira sua conexão e tente novamente. O que já foi carregado continua disponível no aplicativo.</p>
+      <button onclick="location.reload()">Tentar novamente</button>
+    </main>
+  </body>
+</html>

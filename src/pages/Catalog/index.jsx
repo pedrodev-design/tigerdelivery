@@ -14,6 +14,7 @@ import {
   faCircleNotch as Spinner,
   faClipboard as ClipboardSolid,
   faCreditCard as CreditCard,
+  faDownload as Download,
   faHeart as Heart,
   faHouse as House,
   faLocationDot as MapPin,
@@ -51,6 +52,7 @@ import { formatEta } from '../../services/routing'
 import { categories, products, money } from './data'
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { useAccount } from '../../hooks/useAccount'
+import { usePwaInstall } from '../../hooks/usePwaInstall'
 import styles from './Catalog.module.css'
 import allCategory from '../../assets/icons/tudo-icon.png'
 import burgerCategory from '../../assets/icons/burguer-icon.png'
@@ -493,7 +495,7 @@ function CustomerOrderCard({ order }) {
       <div className={styles.liveOrderEta}><span>Motorista em movimento</span><strong>{tracking.routeMeta ? formatEta(tracking.routeMeta.duration) : 'Calculando rota…'}</strong></div>
     </div>}
     <div className={styles.customerOrderStatus}><div><span>{state.label}</span><small>{statusText}</small></div><strong>{new Date(order.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</strong></div>
-    {order.fulfillment_type === 'delivery' && addressLabel && <div className={styles.customerOrderAddress}><Icon icon={MapPin} /><span><small>Entrega em</small><strong>{addressLabel}</strong></span></div>}
+    {order.fulfillment_type === 'delivery' && addressLabel && <div className={styles.customerOrderAddress}><Icon icon={MapPin} /><span><strong>{addressLabel}</strong></span></div>}
     {order.status !== 'cancelled' && <div className={styles.orderProgress} aria-label={`Etapa ${state.step} de 5`}><i style={{ '--order-progress': `${Math.max(8, state.step * 20)}%` }} /></div>}
   </motion.article>
 }
@@ -534,6 +536,30 @@ function OrdersPage({ user, onBrowse }) {
     {error && <p className={styles.ordersError}>{error}</p>}
     <div className={styles.customerOrderList}>{orders.map(order => <CustomerOrderCard key={order.id} order={order} />)}</div>
   </section>
+}
+
+function HelpPage({ navigate }) {
+  const shortcuts = [
+    { id: 'home', icon: MagnifyingGlass, title: 'Explorar o catálogo', text: 'Encontre pratos, categorias e ofertas.' },
+    { id: 'orders', icon: Receipt, title: 'Meus pedidos', text: 'Acompanhe cada etapa da entrega.' },
+    { id: 'favorites', icon: Heart, title: 'Favoritos', text: 'Volte aos pratos que você salvou.' },
+  ]
+  return <motion.section className={styles.helpPage} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: .24, ease: [0.22, 1, 0.36, 1] }}>
+    <section className={styles.helpHero}>
+      <div><span>Central TigreDelivery</span><h2>Resolve rapidinho.</h2><p>Encontre respostas e acesse as áreas mais usadas sem sair do app.</p></div>
+      <img src="/duvida-icon.png" alt="" />
+    </section>
+    <nav className={styles.helpShortcuts} aria-label="Atalhos da ajuda">{shortcuts.map(item => <button key={item.id} onClick={() => navigate(item.id)}><span><Icon icon={item.icon} /></span><div><strong>{item.title}</strong><small>{item.text}</small></div><Icon icon={CaretRight} /></button>)}</nav>
+    <section className={styles.helpFaq}>
+      <header><span>Dúvidas frequentes</span><h2>Como podemos ajudar?</h2></header>
+      <div>
+        <details open><summary><span>01</span>Como faço um pedido?<Icon icon={Plus} /></summary><p>Escolha um prato, toque em adicionar e abra a sacola. Depois, confirme o endereço, a forma de recebimento e o pagamento.</p></details>
+        <details><summary><span>02</span>Onde acompanho a entrega?<Icon icon={Plus} /></summary><p>Abra Meus pedidos para ver o status atualizado e, quando disponível, acompanhar o motorista no mapa.</p></details>
+        <details><summary><span>03</span>Como altero o endereço?<Icon icon={Plus} /></summary><p>Toque no endereço exibido no topo da tela. Você pode buscar pelo CEP e ajustar o ponto exato no mapa.</p></details>
+        <details><summary><span>04</span>Onde ficam meus favoritos?<Icon icon={Plus} /></summary><p>Os pratos marcados com coração aparecem em Favoritos e ficam salvos para você encontrar depois.</p></details>
+      </div>
+    </section>
+  </motion.section>
 }
 
 function ProductPage({ product, favorite, onFavorite, onBack, onAdd }) {
@@ -637,6 +663,21 @@ function ProfilePanel({ modal, setModal, fullPage = false }) {
   const [avatar, setAvatar] = useState(initialAvatar)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [installNotice, setInstallNotice] = useState('')
+  const pwa = usePwaInstall()
+
+  const installApp = async () => {
+    const result = await pwa.install()
+    if (result?.outcome === 'manual-ios') {
+      setInstallNotice('No Safari, toque em Compartilhar e depois em “Adicionar à Tela de Início”.')
+      return
+    }
+    if (result?.outcome === 'unavailable') {
+      setInstallNotice('No Chrome, abra o menu ⋮ e toque em “Instalar aplicativo”. A instalação completa fica disponível na versão publicada em HTTPS.')
+      return
+    }
+    if (result?.outcome === 'accepted') setInstallNotice('TigreDelivery instalado. Você já pode abrir pela tela inicial.')
+  }
 
   const chooseAvatar = event => {
     const file = event.target.files?.[0]
@@ -733,6 +774,8 @@ function ProfilePanel({ modal, setModal, fullPage = false }) {
     {!modal.user && <div className={styles.profileAuth}><a className={styles.profilePrimary} href="#entrar">Entrar</a><a className={styles.profileSecondary} href="#criar-conta">Criar conta</a></div>}
     {modal.user && !editing && notice && <p className={styles.profileNotice} role="status">{notice}</p>}
     <div className={styles.profileList}><button onClick={() => modal.navigate('orders')}><span><Icon icon={Receipt} />Meus pedidos</span><Icon icon={CaretRight} /></button><button onClick={() => modal.navigate('favorites')}><span><Icon icon={Heart} />Favoritos</span><Icon icon={CaretRight} /></button><button onClick={modal.openAddress}><span><Icon icon={MapPin} />Endereços</span><Icon icon={CaretRight} /></button><button onClick={() => modal.onHelp ? modal.onHelp() : setModal({ type: 'help' })}><span><Icon icon={Question} />Ajuda</span><Icon icon={CaretRight} /></button></div>
+    {pwa.canInstall && <button className={styles.pwaInstall} onClick={installApp}><span className={styles.pwaInstallIcon}><Icon icon={Download} /></span><span><strong>Instalar TigreDelivery</strong><small>Acesse como aplicativo no seu celular</small></span><Icon icon={CaretRight} /></button>}
+    {installNotice && <p className={styles.pwaInstallNotice} role="status">{installNotice}</p>}
     <div className={styles.profilePartner}><a className={styles.driverInvite} href={modal.user ? (modal.account?.role === 'admin' ? '#admin' : '#motorista') : '#entrar'}><span className={styles.driverInviteIcon}><Icon icon={modal.account?.role === 'admin' ? Shield : Motorcycle} /></span><span><strong>{modal.user ? (modal.account?.role === 'admin' ? 'Painel administrativo' : modal.account?.role === 'driver' ? 'Área do entregador' : modal.account?.application?.status === 'pending' ? 'Cadastro de motorista' : 'Quero fazer entregas') : 'Quero fazer entregas'}</strong><small>{modal.user ? (modal.account?.role === 'admin' ? 'Cadastros e operação' : modal.account?.role === 'driver' ? 'Entregas e ganhos' : modal.account?.application?.status === 'pending' ? 'Análise em andamento' : 'Cadastre-se para começar') : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a><a className={styles.storeInvite} href={modal.user ? '#lojista' : '#entrar'}><span className={styles.storeInviteIcon}><Icon icon={Store} /></span><span><strong>Quero vender</strong><small>{modal.user ? 'Cadastre sua loja' : 'Entre para continuar'}</small></span><Icon icon={CaretRight} /></a></div>
     {modal.user && <button className={styles.profileLogout} onClick={modal.signOut}>Sair da conta</button>}
   </>
@@ -751,7 +794,6 @@ function CatalogDialog({ modal, setModal }) {
     <Dialog.Overlay asChild forceMount><motion.div className={styles.dialogOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} /></Dialog.Overlay>
     <Dialog.Content asChild forceMount><motion.section className={styles.dialog} initial={{ opacity: 0, y: 22, scale: .985 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .985 }} transition={{ duration: .25, ease: [0.22, 1, 0.36, 1] }}><div className={styles.dialogContent}>
       <Dialog.Close asChild><motion.button whileTap={tap} className={styles.close} aria-label="Fechar"><Icon icon={X} /></motion.button></Dialog.Close>
-      {modal.type === 'help' && <><span className={styles.modalIcon}><Icon icon={Question} /></span><Dialog.Title asChild><h2>Como podemos ajudar?</h2></Dialog.Title><Dialog.Description className={styles.modalSubtitle}>Conheça esta prévia do TigreFood.</Dialog.Description><details open><summary>Como explorar o catálogo?</summary><p>Busque um prato ou restaurante, escolha uma categoria e combine os filtros. Toque em um prato para ver os detalhes.</p></details><details><summary>Posso fazer um pedido?</summary><p>Ainda não. As lojas, os valores e os prazos são demonstrativos.</p></details><details><summary>Onde ficam meus favoritos?</summary><p>Os pratos marcados com coração ficam na seção Favoritos e são salvos neste navegador.</p></details></>}
       {modal.type === 'profile' && <ProfilePanel modal={modal} setModal={setModal} />}
     </div></motion.section></Dialog.Content>
   </Dialog.Portal>}</AnimatePresence></Dialog.Root>
@@ -789,7 +831,7 @@ export function CatalogPage() {
   const discount = couponCode ? Math.min(couponCode === 'PRIMEIRA' ? 12 : subtotal * .1, 15) : 0
   const orderTotal = Math.max(0, subtotal + deliveryTotal + serviceFee - discount)
 
-  useEffect(() => { document.title = 'TigreFood — O que vai ser hoje?' }, [])
+  useEffect(() => { document.title = 'TigreDelivery — O que vai ser hoje?' }, [])
   useEffect(() => { localStorage.setItem('tigre-favorites', JSON.stringify(favorites)) }, [favorites])
   useEffect(() => { localStorage.setItem('tigre-cart', JSON.stringify(cart)) }, [cart])
   useEffect(() => { localStorage.setItem('tigre-cart-extras', JSON.stringify(cartExtras)) }, [cartExtras])
@@ -898,27 +940,35 @@ export function CatalogPage() {
   }
 
   const nav = [{ id: 'home', name: 'Explorar', icon: House }, { id: 'offers', name: 'Ofertas', icon: Tag }, { id: 'favorites', name: 'Favoritos', icon: Heart }, { id: 'orders', name: 'Meus pedidos', icon: Receipt }]
-  const heading = page === 'favorites' ? 'Favoritos' : page === 'offers' ? 'Ofertas' : page === 'orders' ? 'Seus pedidos' : page === 'cart' ? 'Sua sacola' : page === 'payment' ? 'Pagamento' : page === 'product' ? selectedProduct.name : page === 'address' ? 'Endereços' : 'Explore o cardápio'
+  const heading = page === 'favorites' ? 'Favoritos' : page === 'offers' ? 'Ofertas' : page === 'orders' ? 'Seus pedidos' : page === 'help' ? 'Ajuda' : page === 'cart' ? 'Sua sacola' : page === 'payment' ? 'Pagamento' : page === 'product' ? selectedProduct.name : page === 'address' ? 'Endereços' : 'Explore o cardápio'
   const sectionTitle = query ? `Resultados para “${query}”` : page === 'favorites' ? 'Pratos salvos' : page === 'offers' ? 'Pratos em oferta' : category !== 'all' ? categories.find(cat => cat.id === category).label : 'Ofertas para você'
   const discovery = page === 'home' && category === 'all' && !query.trim() && !free && !fast && sort === 'recommended'
 
   const openProfilePage = () => { setModal(null); navigate('profile') }
-  const openProfile = () => setModal({ type: 'profile', navigate, openAddress: () => openAddress('home'), openFullProfile: openProfilePage, user: authUser, account, refresh: account.refresh, signOut })
+  const openProfile = () => setModal({ type: 'profile', navigate, openAddress: () => openAddress('home'), openFullProfile: openProfilePage, onHelp: () => navigate('help'), user: authUser, account, refresh: account.refresh, signOut })
 
   return <MotionConfig reducedMotion="user"><Tooltip.Provider delayDuration={500} skipDelayDuration={200}><div ref={chromeRef} className={`${styles.layout} relative isolate`}>
-    <aside className={styles.sidebar}><a href="#catalogo" className={styles.brand} onClick={() => navigate('home')} aria-label="TigreFood, início"><img src="/tiger.svg" alt="" /><span>Tigre<span>Food</span></span></a><nav aria-label="Menu principal">{nav.map(item => <Tooltip.Root key={item.id}><Tooltip.Trigger asChild><motion.button whileTap={tap} className={page === item.id ? styles.navActive : ''} onClick={() => navigate(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon icon={item.icon} weight={page === item.id ? 'fill' : 'regular'} /><span>{item.name}</span>{item.id === 'favorites' && favorites.length > 0 && <small>{favorites.length}</small>}</motion.button></Tooltip.Trigger><Tooltip.Portal><Tooltip.Content className={styles.tooltip} side="right" sideOffset={10}>{item.name}<Tooltip.Arrow className={styles.tooltipArrow} /></Tooltip.Content></Tooltip.Portal></Tooltip.Root>)}</nav><div className={styles.sidebarBottom}><button className={styles.help} onClick={() => setModal({ type: 'help' })}><Icon icon={Question} />Precisa de ajuda?</button><span className={styles.sidebarCopyright}>TigreFood</span></div></aside>
+    <header className={styles.desktopHeader}>
+      <a href="#catalogo" className={styles.desktopBrand} onClick={() => navigate('home')} aria-label="TigreDelivery, início"><span>Tigre<span>Delivery</span></span></a>
+      <nav aria-label="Menu principal">{nav.map(item => <motion.button key={item.id} whileTap={tap} className={page === item.id ? styles.navActive : ''} onClick={() => navigate(item.id)} aria-current={page === item.id ? 'page' : undefined}><Icon icon={item.icon} weight={page === item.id ? 'fill' : 'regular'} /><span>{item.name}</span>{item.id === 'favorites' && favorites.length > 0 && <small>{favorites.length}</small>}</motion.button>)}</nav>
+      <button className={styles.desktopHelp} onClick={() => navigate('help')}><Icon icon={Question} /><span>Ajuda</span></button>
+    </header>
 
-    <div className={`${styles.workspace} ${page === 'profile' ? styles.profileWorkspace : ''}`}><header className={styles.topbar}><motion.button whileTap={tap} className={`${styles.iconButton} ${styles.menuButton}`} onClick={openProfile} aria-label="Abrir perfil" aria-expanded={modal?.type === 'profile'}>{authUser?.user_metadata?.avatar_url ? <img className={styles.headerAvatar} src={authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</motion.button><motion.button whileTap={tap} className={styles.address} onClick={() => openAddress('home')}><span className={styles.pin}><Icon icon={MapPin} /></span><span><strong>{address?.label || 'Informe seu endereço'}</strong></span><Icon icon={CaretDown} /></motion.button><label className={styles.search}><Icon icon={MagnifyingGlass} /><input ref={searchInput} aria-label="Buscar pratos ou restaurantes" placeholder="Busque um prato ou restaurante" value={query} onChange={event => { setQuery(event.target.value); if (page === 'orders') setPage('home') }} />{query && <motion.button whileTap={tap} onClick={() => setQuery('')} aria-label="Limpar busca"><Icon icon={X} /></motion.button>}<kbd>/</kbd></label>{authUser ? <button className={styles.account} onClick={openProfile}><Icon icon={User} /><span>{authUser.user_metadata?.full_name?.split(' ')[0] || 'Minha conta'}</span></button> : <a className={styles.account} href="#entrar"><Icon icon={User} /><span>Entrar</span></a>}<motion.button whileTap={tap} className={styles.mobileFilter} aria-label="Filtrar cardápio" aria-expanded={filters} onClick={() => { if (page === 'orders') setPage('menu'); setFilters(!filters); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }}><Icon icon={SlidersHorizontal} />{(free || fast) && <i />}</motion.button><motion.button whileTap={{ scale: .92 }} className={styles.bag} onClick={() => navigate('cart')} aria-label={`Abrir sacola, ${count} itens`}><Icon icon={Bag} /><span>Sacola</span><AnimatePresence mode="popLayout" initial={false}><motion.b key={count} initial={{ scale: .45, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.3, opacity: 0 }} transition={spring}>{count}</motion.b></AnimatePresence></motion.button></header>
+    <div className={`${styles.workspace} ${page === 'profile' ? styles.profileWorkspace : ''}`}><header className={styles.topbar}><motion.button whileTap={tap} className={`${styles.iconButton} ${styles.menuButton}`} onClick={openProfile} aria-label="Abrir perfil" aria-expanded={modal?.type === 'profile'}>{authUser?.user_metadata?.avatar_url ? <img className={styles.headerAvatar} src={authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</motion.button><motion.button whileTap={tap} className={styles.address} onClick={() => openAddress('home')}><span className={styles.addressCopy}><strong>{address?.label || 'Informe seu endereço'}</strong></span><Icon icon={CaretDown} /></motion.button><label className={styles.search}><Icon icon={MagnifyingGlass} /><input ref={searchInput} aria-label="Buscar pratos ou restaurantes" placeholder="Busque um prato ou restaurante" value={query} onChange={event => { setQuery(event.target.value); if (page === 'orders') setPage('home') }} />{query && <motion.button whileTap={tap} onClick={() => setQuery('')} aria-label="Limpar busca"><Icon icon={X} /></motion.button>}</label>{authUser ? <button className={`${styles.account} ${styles.accountAvatarButton}`} onClick={openProfile} aria-label="Abrir perfil">{account.profile?.avatar_url || authUser.user_metadata?.avatar_url ? <img src={account.profile?.avatar_url || authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</button> : <a className={styles.account} href="#entrar"><Icon icon={User} /><span>Entrar</span></a>}<motion.button whileTap={tap} className={styles.mobileFilter} aria-label="Filtrar cardápio" aria-expanded={filters} onClick={() => { if (page === 'orders') setPage('menu'); setFilters(!filters); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }}><Icon icon={SlidersHorizontal} />{(free || fast) && <i />}</motion.button><motion.button whileTap={{ scale: .92 }} className={styles.bag} onClick={() => navigate('cart')} aria-label={`Abrir sacola, ${count} itens`}><Icon icon={Bag} /><span>Sacola</span><AnimatePresence mode="popLayout" initial={false}><motion.b key={count} initial={{ scale: .45, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.3, opacity: 0 }} transition={spring}>{count}</motion.b></AnimatePresence></motion.button></header>
       <main className={styles.main}><AnimatePresence mode="wait" initial={false}><motion.div key={page} className={`${styles.pageContent} min-w-0`} initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }} transition={{ duration: .24, ease: [0.22, 1, 0.36, 1] }}>
         {page !== 'profile' && (page !== 'home' || query) && <div className={`${styles.greeting} ${['cart', 'payment', 'product', 'address'].includes(page) ? styles.cartGreeting : ''}`}><h1>{heading}</h1></div>}
-        {page === 'home' && !query && <HeroCarousel onBrowse={browse} />}
-        {page === 'profile' ? <ProfilePage account={account} navigate={navigate} onBack={() => navigate('home')} onAddress={() => openAddress('profile')} onHelp={() => setModal({ type: 'help' })} signOut={signOut} />
+        {page === 'home' && !query && <div className={styles.discoveryDeck}>
+          <HeroCarousel onBrowse={browse} />
+          <CategoryCarousel value={category} onChange={setCategory} />
+        </div>}
+        {page === 'profile' ? <ProfilePage account={account} navigate={navigate} onBack={() => navigate('home')} onAddress={() => openAddress('profile')} onHelp={() => navigate('help')} signOut={signOut} />
+          : page === 'help' ? <HelpPage navigate={navigate} />
           : page === 'address' ? <AddressPage address={address} onBack={() => navigate(addressReturn)} onSave={saveAddress} />
           : page === 'product' ? <ProductPage key={selectedProduct.id} product={selectedProduct} favorite={favorites.includes(selectedProduct.id)} onFavorite={() => toggleFavorite(selectedProduct.id)} onBack={() => navigate('home')} onAdd={(item, amount, extras) => { add(item, amount, extras); navigate('cart') }} />
             : page === 'cart' ? <CartPage count={count} cart={cart} cartExtras={cartExtras} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} couponCode={couponCode} fulfillment={fulfillment} changeQuantity={changeQuantity} browse={browse} onBack={() => navigate('home')} user={authUser} onCoupon={setCouponCode} onFulfillment={setFulfillment} onCheckout={() => navigate('payment')} />
               : page === 'payment' ? <PaymentPage address={address} subtotal={subtotal} deliveryTotal={deliveryTotal} serviceFee={serviceFee} discount={discount} total={orderTotal} fulfillment={fulfillment} storeName={products.find(item => cart[item.id] > 0)?.shop || 'Brasa Burger'} onFulfillment={setFulfillment} onBack={() => navigate('cart')} onAddress={() => openAddress('payment')} onConfirm={placeOrder} loading={placingOrder} error={checkoutError} />
-                : page !== 'orders' ? <><CategoryCarousel value={category} onChange={setCategory} /><section ref={results} className={styles.results} aria-label="Cardápio"><div className={styles.sectionHeading}><div><h2>{sectionTitle}</h2><p>{visible.length} {visible.length === 1 ? 'opção' : 'opções'}</p></div><motion.button whileTap={tap} className={`${styles.filterButton} ${filters ? styles.filterActive : ''}`} onClick={() => setFilters(!filters)} aria-expanded={filters}><Icon icon={SlidersHorizontal} />Filtros{(free || fast) && <b>{Number(free) + Number(fast)}</b>}</motion.button></div><div className={`${styles.filterRow} ${filters ? styles.filtersExpanded : ''}`}><motion.button whileTap={tap} className={free ? styles.chipActive : ''} aria-pressed={free} onClick={() => setFree(!free)}>Entrega grátis</motion.button><motion.button whileTap={tap} className={fast ? styles.chipActive : ''} aria-pressed={fast} onClick={() => setFast(!fast)}><Icon className={styles.filterBolt} icon={Lightning} />Até 30 min</motion.button><SortControl value={sort} onChange={setSort} /></div><AnimatePresence mode="popLayout">{visible.length ? <CatalogSections items={visible} discovery={discovery} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} add={add} browse={browse} neighborhood={address?.neighborhood} /> : <motion.div className={styles.empty} initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}><Icon icon={page === 'favorites' ? Heart : MagnifyingGlass} /><h3>{page === 'favorites' && !favorites.length ? 'Nenhum favorito salvo.' : 'Não encontramos essa combinação.'}</h3><p>{page === 'favorites' && !favorites.length ? 'Toque no coração de um prato para encontrá-lo aqui depois.' : 'Experimente outro nome ou remova alguns filtros.'}</p><button onClick={() => navigate('home')}>Explorar o cardápio<Icon icon={ArrowRight} /></button></motion.div>}</AnimatePresence></section></> : <OrdersPage user={authUser} onBrowse={() => navigate('home')} />}
-        {!['cart', 'payment', 'product', 'address', 'profile'].includes(page) && <footer className={styles.footer}><strong>TigreFood</strong><p>Fotos ilustrativas · Lojas, preços e prazos de demonstração.</p><button onClick={() => setModal({ type: 'help' })}>Ajuda e informações<Icon icon={ArrowRight} /></button></footer>}
+                : page !== 'orders' ? <>{!(page === 'home' && !query) && <CategoryCarousel value={category} onChange={setCategory} />}<section ref={results} className={styles.results} aria-label="Cardápio"><div className={styles.sectionHeading}><div><h2>{sectionTitle}</h2><p>{visible.length} {visible.length === 1 ? 'opção' : 'opções'}</p></div><motion.button whileTap={tap} className={`${styles.filterButton} ${filters ? styles.filterActive : ''}`} onClick={() => setFilters(!filters)} aria-expanded={filters}><Icon icon={SlidersHorizontal} />Filtros{(free || fast) && <b>{Number(free) + Number(fast)}</b>}</motion.button></div><div className={`${styles.filterRow} ${filters ? styles.filtersExpanded : ''}`}><motion.button whileTap={tap} className={free ? styles.chipActive : ''} aria-pressed={free} onClick={() => setFree(!free)}>Entrega grátis</motion.button><motion.button whileTap={tap} className={fast ? styles.chipActive : ''} aria-pressed={fast} onClick={() => setFast(!fast)}><Icon className={styles.filterBolt} icon={Lightning} />Até 30 min</motion.button><SortControl value={sort} onChange={setSort} /></div><AnimatePresence mode="popLayout">{visible.length ? <CatalogSections items={visible} discovery={discovery} favorites={favorites} toggleFavorite={toggleFavorite} openProduct={openProduct} add={add} browse={browse} neighborhood={address?.neighborhood} /> : <motion.div className={styles.empty} initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}><Icon icon={page === 'favorites' ? Heart : MagnifyingGlass} /><h3>{page === 'favorites' && !favorites.length ? 'Nenhum favorito salvo.' : 'Não encontramos essa combinação.'}</h3><p>{page === 'favorites' && !favorites.length ? 'Toque no coração de um prato para encontrá-lo aqui depois.' : 'Experimente outro nome ou remova alguns filtros.'}</p><button onClick={() => navigate('home')}>Explorar o cardápio<Icon icon={ArrowRight} /></button></motion.div>}</AnimatePresence></section></> : <OrdersPage user={authUser} onBrowse={() => navigate('home')} />}
+        {!['cart', 'payment', 'product', 'address', 'profile', 'help'].includes(page) && <footer className={styles.footer}><strong>TigreDelivery</strong><p>Fotos ilustrativas · Lojas, preços e prazos de demonstração.</p><button onClick={() => navigate('help')}>Ajuda e informações<Icon icon={ArrowRight} /></button></footer>}
       </motion.div></AnimatePresence></main>
     </div>
 
