@@ -524,6 +524,7 @@
 .pwaInstall small { color: #b9bbb2; font-size: 10px; }
 .pwaInstall > svg { width: 8px; color: #ffda00; }
 .pwaInstallNotice { margin-top: 10px; padding: 11px 13px; border-radius: 12px; background: #fff7c9; color: #554a16; font-size: 11px; line-height: 1.45; }
+.mobileInstallBanner { display: none; }
 .profileWorkspace .topbar { display: none; }
 .profileWorkspace .main { min-height: 100svh; padding-top: 0; }
 .profilePage { width: 100%; min-height: 100svh; margin: 0; background: #f7f6f1; }
@@ -1110,6 +1111,16 @@
 }
 
 @media (max-width: 600px) {
+  .mobileInstallBanner { position: relative; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; align-items: center; gap: 11px; margin: 0 0 16px; padding: 12px 40px 12px 12px; border-radius: 19px; background: #20211d; color: #fff; box-shadow: 0 12px 28px #20211d1f; }
+  .mobileInstallBanner > img { width: 46px; height: 46px; border-radius: 14px; }
+  .mobileInstallBanner > div { display: grid; gap: 2px; min-width: 0; }
+  .mobileInstallBanner strong { font-size: 12px; line-height: 1.25; }
+  .mobileInstallBanner small { color: #b9bbb2; font-size: 9px; line-height: 1.35; }
+  .mobileInstallAction { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 11px; border: 0; border-radius: 11px; background: #ffda00; color: #20211d; font-size: 10px; font-weight: 800; }
+  .mobileInstallAction svg { width: 11px; }
+  .mobileInstallDismiss { position: absolute; top: 5px; right: 5px; display: grid; width: 28px; height: 28px; place-items: center; border: 0; background: transparent; color: #8f9189; }
+  .mobileInstallDismiss svg { width: 11px; }
+  .mobileInstallBanner > p { grid-column: 1 / -1; margin: 0; padding: 9px 10px; border-radius: 10px; background: #ffffff12; color: #dedfd8; font-size: 10px; line-height: 1.4; }
   .helpPage { gap: 16px; margin-bottom: 24px; }
   .helpHero { grid-template-columns: minmax(0, 1fr) 90px; min-height: 168px; padding: 22px 18px; border-radius: 22px; }
   .helpHero::after { right: 38px; bottom: -75px; width: 170px; height: 170px; border-width: 28px; }

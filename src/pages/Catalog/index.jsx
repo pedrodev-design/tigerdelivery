@@ -652,6 +652,33 @@ function PaymentPage({ address, subtotal, deliveryTotal, serviceFee, discount, t
   </motion.section>
 }
 
+function MobileInstallBanner() {
+  const pwa = usePwaInstall()
+  const [dismissed, setDismissed] = useState(() => localStorage.getItem('tigre-install-banner-dismissed') === '1')
+  const [message, setMessage] = useState('')
+
+  if (!pwa.canInstall || dismissed) return null
+
+  const install = async () => {
+    const result = await pwa.install()
+    if (result?.outcome === 'manual-ios') setMessage('No Safari: toque em Compartilhar e depois em “Adicionar à Tela de Início”.')
+    else if (result?.outcome === 'unavailable') setMessage('Abra o menu ⋮ do navegador e toque em “Instalar aplicativo”.')
+  }
+
+  const dismiss = () => {
+    localStorage.setItem('tigre-install-banner-dismissed', '1')
+    setDismissed(true)
+  }
+
+  return <motion.aside className={styles.mobileInstallBanner} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} aria-label="Instalar TigreDelivery">
+    <img src="/pwa-192.png" alt="" />
+    <div><strong>TigreDelivery no celular</strong><small>Abra mais rápido, como um aplicativo.</small></div>
+    <button className={styles.mobileInstallAction} onClick={install}><Icon icon={Download} />Instalar</button>
+    <button className={styles.mobileInstallDismiss} onClick={dismiss} aria-label="Fechar sugestão de instalação"><Icon icon={X} /></button>
+    {message && <p role="status">{message}</p>}
+  </motion.aside>
+}
+
 function ProfilePanel({ modal, setModal, fullPage = false }) {
   const metadata = modal.user?.user_metadata || {}
   const profile = modal.account?.profile || {}
@@ -955,7 +982,7 @@ export function CatalogPage() {
     </header>
 
     <div className={`${styles.workspace} ${page === 'profile' ? styles.profileWorkspace : ''}`}><header className={styles.topbar}><motion.button whileTap={tap} className={`${styles.iconButton} ${styles.menuButton}`} onClick={openProfile} aria-label="Abrir perfil" aria-expanded={modal?.type === 'profile'}>{authUser?.user_metadata?.avatar_url ? <img className={styles.headerAvatar} src={authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</motion.button><motion.button whileTap={tap} className={styles.address} onClick={() => openAddress('home')}><span className={styles.addressCopy}><strong>{address?.label || 'Informe seu endereço'}</strong></span><Icon icon={CaretDown} /></motion.button><label className={styles.search}><Icon icon={MagnifyingGlass} /><input ref={searchInput} aria-label="Buscar pratos ou restaurantes" placeholder="Busque um prato ou restaurante" value={query} onChange={event => { setQuery(event.target.value); if (page === 'orders') setPage('home') }} />{query && <motion.button whileTap={tap} onClick={() => setQuery('')} aria-label="Limpar busca"><Icon icon={X} /></motion.button>}</label>{authUser ? <button className={`${styles.account} ${styles.accountAvatarButton}`} onClick={openProfile} aria-label="Abrir perfil">{account.profile?.avatar_url || authUser.user_metadata?.avatar_url ? <img src={account.profile?.avatar_url || authUser.user_metadata.avatar_url} alt="" referrerPolicy="no-referrer" /> : <Icon icon={User} />}</button> : <a className={styles.account} href="#entrar"><Icon icon={User} /><span>Entrar</span></a>}<motion.button whileTap={tap} className={styles.mobileFilter} aria-label="Filtrar cardápio" aria-expanded={filters} onClick={() => { if (page === 'orders') setPage('menu'); setFilters(!filters); requestAnimationFrame(() => results.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })) }}><Icon icon={SlidersHorizontal} />{(free || fast) && <i />}</motion.button><motion.button whileTap={{ scale: .92 }} className={styles.bag} onClick={() => navigate('cart')} aria-label={`Abrir sacola, ${count} itens`}><Icon icon={Bag} /><span>Sacola</span><AnimatePresence mode="popLayout" initial={false}><motion.b key={count} initial={{ scale: .45, rotate: -12 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 1.3, opacity: 0 }} transition={spring}>{count}</motion.b></AnimatePresence></motion.button></header>
-      <main className={styles.main}><AnimatePresence mode="wait" initial={false}><motion.div key={page} className={`${styles.pageContent} min-w-0`} initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }} transition={{ duration: .24, ease: [0.22, 1, 0.36, 1] }}>
+      <main className={styles.main}>{page === 'home' && !query && <MobileInstallBanner />}<AnimatePresence mode="wait" initial={false}><motion.div key={page} className={`${styles.pageContent} min-w-0`} initial={{ opacity: 0, y: reducedMotion ? 0 : 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }} transition={{ duration: .24, ease: [0.22, 1, 0.36, 1] }}>
         {page !== 'profile' && (page !== 'home' || query) && <div className={`${styles.greeting} ${['cart', 'payment', 'product', 'address'].includes(page) ? styles.cartGreeting : ''}`}><h1>{heading}</h1></div>}
         {page === 'home' && !query && <div className={styles.discoveryDeck}>
           <HeroCarousel onBrowse={browse} />
