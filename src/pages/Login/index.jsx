@@ -280,6 +280,9 @@ export function LoginPage() {
           },
         });
         if (error) throw error;
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          throw new Error("user_already_registered");
+        }
         if (data.session) await enterCatalog(data.session);
         else {
           const pending = {

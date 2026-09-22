@@ -591,6 +591,7 @@
 .customerOrderAddress span { display: grid; gap: 2px; min-width: 0; }
 .customerOrderAddress small { color: #8a8a82; font-size: 8px; }
 .customerOrderAddress strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.customerOrderActions { display: flex; justify-content: flex-end; margin-top: 12px; }
 .orderProgress { height: 4px; margin-top: 16px; overflow: hidden; border-radius: 999px; background: #ebeae4; }
 .orderProgress i { display: block; width: var(--order-progress); height: 100%; border-radius: inherit; background: #ffda00; transition: width .35s ease; }
 .cancelledOrder { opacity: .68; }

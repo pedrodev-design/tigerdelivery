@@ -1,24 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
-
-const permissionMessage = error => {
-  if (error?.code === 1) return 'Ative a localização do navegador para ficar online.'
-  if (error?.code === 2) return 'Não conseguimos localizar você. Verifique o GPS.'
-  if (error?.code === 3) return 'O GPS demorou para responder. Tente novamente.'
-  return 'Não foi possível iniciar sua localização.'
-}
+import { geolocationMessage, getBestPosition, watchBestPosition } from '../services/geolocation'
 
 export function useDriverTracking(driverId) {
   const [online, setOnline] = useState(false)
   const [location, setLocation] = useState(null)
   const [error, setError] = useState('')
   const [changing, setChanging] = useState(false)
-  const watchId = useRef(null)
+  const stopWatching = useRef(null)
   const lastSentAt = useRef(0)
 
   const stopWatch = useCallback(() => {
-    if (watchId.current !== null && navigator.geolocation) navigator.geolocation.clearWatch(watchId.current)
-    watchId.current = null
+    stopWatching.current?.()
+    stopWatching.current = null
   }, [])
 
   const sendLocation = useCallback(async position => {
@@ -30,6 +24,7 @@ export function useDriverTracking(driverId) {
       speed: position.coords.speed,
     }
     setLocation(next)
+    setError('')
     const now = Date.now()
     if (now - lastSentAt.current < 4000) return
     lastSentAt.current = now
@@ -45,12 +40,7 @@ export function useDriverTracking(driverId) {
 
   const startWatch = useCallback(() => {
     stopWatch()
-    if (!navigator.geolocation) { setError('Localização indisponível neste navegador.'); return }
-    watchId.current = navigator.geolocation.watchPosition(sendLocation, failure => setError(permissionMessage(failure)), {
-      enableHighAccuracy: true,
-      maximumAge: 2500,
-      timeout: 12000,
-    })
+    stopWatching.current = watchBestPosition(sendLocation, failure => setError(geolocationMessage(failure)))
   }, [sendLocation, stopWatch])
 
   useEffect(() => {
@@ -77,8 +67,8 @@ export function useDriverTracking(driverId) {
       setOnline(false)
       return true
     }
-    if (!navigator.geolocation) { setChanging(false); setError('Localização indisponível neste navegador.'); return false }
-    return new Promise(resolve => navigator.geolocation.getCurrentPosition(async position => {
+    try {
+      const position = await getBestPosition()
       const nextLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude, accuracy: position.coords.accuracy, heading: position.coords.heading, speed: position.coords.speed }
       const { error: rpcError } = await supabase.rpc('set_driver_availability', {
         p_is_online: true,
@@ -87,19 +77,23 @@ export function useDriverTracking(driverId) {
         p_accuracy_m: nextLocation.accuracy,
       })
       setChanging(false)
-      if (rpcError) { setError('Não foi possível ficar online agora.'); resolve(false); return }
+      if (rpcError) {
+        setError(rpcError.message?.includes('approved_driver_required')
+          ? 'Seu cadastro precisa estar aprovado para usar o GPS.'
+          : 'O GPS respondeu, mas não conseguimos ativar sua disponibilidade. Tente novamente.')
+        return false
+      }
       setLocation(nextLocation)
       setOnline(true)
       lastSentAt.current = Date.now()
       startWatch()
-      resolve(true)
-    }, failure => {
+      return true
+    } catch (failure) {
       setChanging(false)
-      setError(permissionMessage(failure))
-      resolve(false)
-    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }))
+      setError(geolocationMessage(failure))
+      return false
+    }
   }, [changing, startWatch, stopWatch])
 
   return { online, location, error, changing, setAvailability }
 }
-

@@ -48,7 +48,9 @@ import { Dialog, Select, Tooltip } from 'radix-ui'
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'motion/react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useDeliveryTracking } from '../../hooks/useDeliveryTracking'
+import { OrderChat } from '../../components/OrderChat'
 import { formatEta } from '../../services/routing'
+import { geolocationMessage, getBestPosition } from '../../services/geolocation'
 import { categories, products, money } from './data'
 import { isSupabaseConfigured, supabase } from '../../lib/supabase'
 import { useAccount } from '../../hooks/useAccount'
@@ -413,19 +415,17 @@ function AddressPage({ address, onBack, onSave }) {
     }
   }
 
-  const locate = () => {
-    if (!navigator.geolocation) { setLocationError('Localização indisponível neste navegador.'); return }
+  const locate = async () => {
     setLocationError('')
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const nextPoint = [position.coords.latitude, position.coords.longitude]
-        setUserLocation(nextPoint)
-        setLocationAccuracy(Math.min(Math.max(position.coords.accuracy || 80, 30), 500))
-        setPoint(nextPoint)
-      },
-      () => setLocationError('Não foi possível acessar sua localização. Você pode escolher o ponto no mapa.'),
-      { enableHighAccuracy: true, timeout: 8000 },
-    )
+    try {
+      const position = await getBestPosition()
+      const nextPoint = [position.coords.latitude, position.coords.longitude]
+      setUserLocation(nextPoint)
+      setLocationAccuracy(Math.min(Math.max(position.coords.accuracy || 80, 30), 500))
+      setPoint(nextPoint)
+    } catch (error) {
+      setLocationError(`${geolocationMessage(error)} Você também pode escolher o ponto no mapa.`)
+    }
   }
 
   const saveAddress = event => {
@@ -470,7 +470,7 @@ const orderStatus = {
   cancelled: { label: 'Cancelado', step: 0 },
 }
 
-function CustomerOrderCard({ order }) {
+function CustomerOrderCard({ order, currentUserId }) {
   const state = orderStatus[order.status] || orderStatus.new
   const items = order.store_order_items || []
   const addressLabel = order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number].filter(Boolean).join(', ')
@@ -497,6 +497,7 @@ function CustomerOrderCard({ order }) {
     <div className={styles.customerOrderStatus}><div><span>{state.label}</span><small>{statusText}</small></div><strong>{new Date(order.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</strong></div>
     {order.fulfillment_type === 'delivery' && addressLabel && <div className={styles.customerOrderAddress}><Icon icon={MapPin} /><span><strong>{addressLabel}</strong></span></div>}
     {order.status !== 'cancelled' && <div className={styles.orderProgress} aria-label={`Etapa ${state.step} de 5`}><i style={{ '--order-progress': `${Math.max(8, state.step * 20)}%` }} /></div>}
+    {order.driver_id && !['cancelled', 'delivered'].includes(order.status) && <div className={styles.customerOrderActions}><OrderChat orderId={order.id} currentUserId={currentUserId} otherLabel="Motorista" /></div>}
   </motion.article>
 }
 
@@ -534,7 +535,7 @@ function OrdersPage({ user, onBrowse }) {
   return <section className={styles.ordersPage}>
     <header><div><span>Atualização em tempo real</span><h2>Acompanhe seu pedido</h2></div><button onClick={loadOrders}><Icon icon={Spinner} />Atualizar</button></header>
     {error && <p className={styles.ordersError}>{error}</p>}
-    <div className={styles.customerOrderList}>{orders.map(order => <CustomerOrderCard key={order.id} order={order} />)}</div>
+    <div className={styles.customerOrderList}>{orders.map(order => <CustomerOrderCard key={order.id} order={order} currentUserId={user.id} />)}</div>
   </section>
 }
 
