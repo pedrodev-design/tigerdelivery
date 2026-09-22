@@ -1,8 +1,8 @@
 .trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid #dfddd2; border-radius: 12px; background: #fff; color: #282923; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
 .trigger svg { width: 13px; color: #9d8500; }
 .trigger b { display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #e4492e; color: #fff; font-size: 9px; }
-.backdrop { position: fixed; z-index: 200; inset: 0; display: flex; align-items: flex-end; justify-content: flex-end; padding: 20px; background: rgba(20, 21, 18, .34); backdrop-filter: blur(5px); }
-.panel { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; width: min(390px, calc(100vw - 40px)); height: min(640px, calc(100svh - 40px)); overflow: hidden; border: 1px solid rgba(255,255,255,.8); border-radius: 25px; background: #f7f6f1; box-shadow: 0 24px 80px rgba(18,19,16,.28); }
+.backdrop { position: fixed; z-index: 10000; inset: 0; isolation: isolate; display: flex; align-items: flex-end; justify-content: flex-end; padding: 20px; background: rgba(20, 21, 18, .34); backdrop-filter: blur(5px); }
+.panel { position: relative; z-index: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; width: min(390px, calc(100vw - 40px)); height: min(640px, calc(100svh - 40px)); overflow: hidden; border: 1px solid rgba(255,255,255,.8); border-radius: 25px; background: #f7f6f1; box-shadow: 0 24px 80px rgba(18,19,16,.28); }
 .header { display: grid; grid-template-columns: 46px minmax(0, 1fr) 38px; align-items: center; gap: 12px; padding: 16px; background: #20211d; color: #fff; }
 .avatar { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; background: #ffda00; color: #20211d; }
 .avatar svg { width: 17px; }
