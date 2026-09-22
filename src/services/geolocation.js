@@ -1,7 +1,7 @@
 const highAccuracyOptions = {
   enableHighAccuracy: true,
   maximumAge: 15000,
-  timeout: 12000,
+  timeout: 15000,
 }
 
 const reliableOptions = {
@@ -29,12 +29,19 @@ export async function getBestPosition() {
   if (!window.isSecureContext) throw Object.assign(new Error('insecure_context'), { code: 'insecure' })
   if (!navigator.geolocation) throw Object.assign(new Error('unsupported'), { code: 'unsupported' })
 
-  try {
-    return await readPosition(highAccuracyOptions)
-  } catch (error) {
-    if (error?.code === 1) throw error
-    return readPosition(reliableOptions)
-  }
+  // Mobile browsers can take a long time to lock high-accuracy GPS indoors.
+  // Use the first valid fix and let the live watcher refine it afterwards.
+  return new Promise((resolve, reject) => {
+    let failures = 0
+    let lastError
+    const fail = error => {
+      lastError = error
+      failures += 1
+      if (failures === 2) reject(lastError)
+    }
+    readPosition(highAccuracyOptions).then(resolve, fail)
+    readPosition(reliableOptions).then(resolve, fail)
+  })
 }
 
 export function watchBestPosition(onPosition, onError) {

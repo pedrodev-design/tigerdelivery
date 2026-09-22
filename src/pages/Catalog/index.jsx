@@ -957,7 +957,13 @@ export function CatalogPage() {
     })
     setPlacingOrder(false)
     if (error) {
-      setCheckoutError(error.message.includes('no_driver_available') || error.message.includes('no_driver_online') ? 'Ainda não há motorista online perto deste endereço.' : error.message.includes('demo_store_unavailable') ? 'Esta loja de demonstração está fechada.' : 'Não foi possível confirmar o pedido agora.')
+      setCheckoutError(error.message.includes('no_driver_available') || error.message.includes('no_driver_online')
+        ? 'Ainda não há motorista online perto deste endereço.'
+        : error.message.includes('demo_store_unavailable')
+          ? 'Esta loja de demonstração está fechada.'
+          : error.message.includes('outside_delivery_area')
+            ? 'Atualizamos a área desta loja. Recarregue o aplicativo e tente novamente.'
+            : 'Não foi possível confirmar o pedido agora. Tente novamente em instantes.')
       return
     }
     setCart(Object.fromEntries(products.map(product => [product.id, 0])))

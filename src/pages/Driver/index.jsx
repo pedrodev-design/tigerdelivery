@@ -239,7 +239,7 @@ function DriverHome({ account }) {
         </button>
       </div>
 
-      {tracking.error && <p className={styles.locationNotice}><Icon icon={faLocationDot} />{tracking.error}</p>}
+      {tracking.error && <div className={styles.locationNotice}><Icon icon={faLocationDot} /><span>{tracking.error}</span>{online && <button type="button" onClick={tracking.retryLocation} disabled={tracking.changing}>Tentar novamente</button>}</div>}
 
       {activeOrders.length > 0 && <section className={styles.deliveryQueue}>
         <header><div><span>{activeOrders.length} {activeOrders.length === 1 ? 'entrega disponível' : 'entregas disponíveis'}</span><h2>Sua rota agora</h2></div><button onClick={loadOrders}><Icon icon={faRotate} />Atualizar</button></header>

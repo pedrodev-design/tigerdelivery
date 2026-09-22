@@ -9,6 +9,7 @@ export function useDriverTracking(driverId) {
   const [changing, setChanging] = useState(false)
   const stopWatching = useRef(null)
   const lastSentAt = useRef(0)
+  const onlineRef = useRef(false)
 
   const stopWatch = useCallback(() => {
     stopWatching.current?.()
@@ -42,6 +43,20 @@ export function useDriverTracking(driverId) {
     stopWatch()
     stopWatching.current = watchBestPosition(sendLocation, failure => setError(geolocationMessage(failure)))
   }, [sendLocation, stopWatch])
+
+  useEffect(() => { onlineRef.current = online }, [online])
+
+  useEffect(() => {
+    const resumeTracking = () => {
+      if (document.visibilityState === 'visible' && onlineRef.current) startWatch()
+    }
+    document.addEventListener('visibilitychange', resumeTracking)
+    window.addEventListener('online', resumeTracking)
+    return () => {
+      document.removeEventListener('visibilitychange', resumeTracking)
+      window.removeEventListener('online', resumeTracking)
+    }
+  }, [startWatch])
 
   useEffect(() => {
     if (!driverId) return undefined
@@ -95,5 +110,22 @@ export function useDriverTracking(driverId) {
     }
   }, [changing, startWatch, stopWatch])
 
-  return { online, location, error, changing, setAvailability }
+  const retryLocation = useCallback(async () => {
+    if (!onlineRef.current || changing) return false
+    setChanging(true)
+    setError('')
+    try {
+      const position = await getBestPosition()
+      await sendLocation(position)
+      startWatch()
+      setChanging(false)
+      return true
+    } catch (failure) {
+      setChanging(false)
+      setError(geolocationMessage(failure))
+      return false
+    }
+  }, [changing, sendLocation, startWatch])
+
+  return { online, location, error, changing, setAvailability, retryLocation }
 }
