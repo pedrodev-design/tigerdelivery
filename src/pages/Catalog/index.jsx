@@ -522,10 +522,13 @@ function OrdersPage({ user, onBrowse }) {
   useEffect(() => {
     const timer = window.setTimeout(loadOrders, 0)
     if (!user || !supabase) return () => window.clearTimeout(timer)
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === 'visible') loadOrders()
+    }, 10000)
     const channel = supabase.channel(`customer-orders-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'store_orders', filter: `customer_id=eq.${user.id}` }, loadOrders)
       .subscribe()
-    return () => { window.clearTimeout(timer); supabase.removeChannel(channel) }
+    return () => { window.clearTimeout(timer); window.clearInterval(poll); supabase.removeChannel(channel) }
   }, [loadOrders, user])
 
   if (!user) return <OrdersEmpty user={user} onBrowse={onBrowse} />
@@ -648,7 +651,7 @@ function PaymentPage({ address, subtotal, deliveryTotal, serviceFee, discount, t
       <section className={`${styles.checkoutSummary} ${styles.paymentSummary}`} aria-label="Valores do pedido"><header><h2>Resumo do pagamento</h2><span>Veja como o total foi calculado</span></header><div><span>Subtotal dos itens</span><strong>{money(subtotal)}</strong></div><div><span>{fulfillment === 'pickup' ? 'Retirada' : 'Entrega'}</span><strong className={deliveryTotal === 0 ? styles.checkoutFree : ''}>{fulfillment === 'pickup' ? 'Sem taxa' : deliveryTotal === 0 ? 'Grátis' : money(deliveryTotal)}</strong></div><div><span>Taxa de serviço</span><strong>{money(serviceFee)}</strong></div>{discount > 0 && <div className={styles.checkoutDiscount}><span>Cupom</span><strong>− {money(discount)}</strong></div>}<div className={styles.checkoutTotal}><span>Total</span><strong>{money(total)}</strong></div></section>
       {error && <p className={styles.checkoutError} role="status">{error}</p>}
       <button className={styles.checkoutButton} disabled={loading || (fulfillment === 'delivery' && !address)} onClick={() => onConfirm(method)}><span>{fulfillment === 'delivery' && !address ? 'Adicione um endereço' : loading ? 'Confirmando pedido…' : 'Confirmar pedido'}</span><strong>{loading ? <Icon className={styles.checkoutSpinner} icon={Spinner} /> : <>{money(total)} <Icon icon={CaretRight} /></>}</strong></button>
-      <p className={styles.paymentNote}>A loja confirma automaticamente neste teste e o motorista recebe a entrega na hora.</p>
+      <p className={styles.paymentNote}>A loja confirma automaticamente e o próximo motorista online recebe a entrega.</p>
     </div>
   </motion.section>
 }
@@ -943,7 +946,7 @@ export function CatalogPage() {
     })
     setPlacingOrder(true)
     setCheckoutError('')
-    const { error } = await supabase.rpc('place_demo_order', {
+    const { data: placedOrder, error } = await supabase.rpc('place_demo_order', {
       p_store_name: selectedItems[0].shop,
       p_items: items,
       p_delivery_address: fulfillment === 'delivery' ? { ...address, recipient_name: account.profile?.full_name || authUser.user_metadata?.full_name || 'Cliente' } : {},
@@ -970,7 +973,7 @@ export function CatalogPage() {
     setCartExtras({})
     setCouponCode('')
     navigate('orders')
-    setToast('Pedido confirmado e enviado ao motorista')
+    setToast(placedOrder?.driver_id ? 'Pedido confirmado e enviado ao motorista' : 'Pedido confirmado. Estamos chamando um motorista')
   }
 
   const nav = [{ id: 'home', name: 'Explorar', icon: House }, { id: 'offers', name: 'Ofertas', icon: Tag }, { id: 'favorites', name: 'Favoritos', icon: Heart }, { id: 'orders', name: 'Meus pedidos', icon: Receipt }]

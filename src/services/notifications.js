@@ -21,7 +21,7 @@ export async function requestNotificationPermission() {
   }
 }
 
-export async function showSystemNotification({ title, body, tag = 'tigredelivery-admin' }) {
+export async function showSystemNotification({ title, body, tag = 'tigredelivery-admin', url = '/#admin' }) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return false
 
   const options = {
@@ -31,7 +31,7 @@ export async function showSystemNotification({ title, body, tag = 'tigredelivery
     tag,
     renotify: true,
     vibrate: [180, 90, 180],
-    data: { url: '/#admin' },
+    data: { url },
   }
 
   try {

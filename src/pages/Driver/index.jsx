@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -34,6 +34,7 @@ import { OrderChat } from '../../components/OrderChat'
 import { formatDistance, formatEta, getDrivingRoute } from '../../services/routing'
 import { formatCpf, formatPhone, isValidCpf, onlyDigits } from '../../utils/validators'
 import { supabase } from '../../lib/supabase'
+import { playNotificationSound, requestNotificationPermission, showSystemNotification } from '../../services/notifications'
 import styles from './Driver.module.css'
 
 const Icon = ({ icon }) => <FontAwesomeIcon icon={icon} fixedWidth aria-hidden="true" />
@@ -131,8 +132,8 @@ function DriverNavigation({ order, location, online, updating, onClose, onAction
   const { driverPoint, storePoint, addressPoint, route, routeMeta, routeError } = useDriverRoute(order, location)
   const goingToCustomer = order.status === 'picked_up'
   const accepted = Boolean(order.driver_accepted_at)
-  const action = !accepted ? 'accept' : goingToCustomer ? 'deliver' : 'pickup'
-  const actionLabel = !accepted ? 'Aceitar esta entrega' : goingToCustomer ? 'Finalizar entrega' : 'Confirmar retirada'
+  const action = goingToCustomer ? 'deliver' : !accepted ? 'accept' : 'pickup'
+  const actionLabel = goingToCustomer ? 'Finalizar entrega' : !accepted ? 'Aceitar esta entrega' : 'Confirmar retirada'
   const destinationLabel = goingToCustomer ? (order.delivery_address?.recipient_name || 'cliente') : (order.stores?.name || 'loja')
   const destinationAddress = goingToCustomer
     ? order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number, order.delivery_address?.neighborhood].filter(Boolean).join(', ')
@@ -186,10 +187,13 @@ function DriverHome({ account }) {
   const [ordersError, setOrdersError] = useState('')
   const [updatingOrder, setUpdatingOrder] = useState('')
   const [navigationOrderId, setNavigationOrderId] = useState('')
+  const knownActiveOrderIds = useRef(new Set())
+  const loadedOrdersOnce = useRef(false)
   const firstName = account.profile?.full_name?.split(' ')[0] || 'Parceiro'
   const notify = message => { setToast(message); window.setTimeout(() => setToast(''), 2200) }
 
   async function toggleOnline() {
+    if (!online) await requestNotificationPermission()
     const changed = await tracking.setAvailability(!online)
     if (changed) notify(!online ? 'Você está online e recebendo entregas' : 'Você ficou offline')
   }
@@ -201,17 +205,37 @@ function DriverHome({ account }) {
       .eq('driver_id', account.user.id)
       .order('created_at', { ascending: false })
       .limit(40)
-    setOrders(data || [])
+    const nextOrders = data || []
+    const active = nextOrders.filter(order => !['delivered', 'cancelled'].includes(order.status))
+    const fresh = active.filter(order => !knownActiveOrderIds.current.has(order.id))
+    knownActiveOrderIds.current = new Set(active.map(order => order.id))
+    if (!error && fresh.length && (loadedOrdersOnce.current || active.length)) {
+      playNotificationSound()
+      showSystemNotification({
+        title: fresh.length > 1 ? `${fresh.length} novas entregas` : 'Nova entrega disponível',
+        body: fresh.length > 1 ? 'Abra o Tigre Entregas para ver sua rota.' : `Pedido #${fresh[0].id.slice(0, 6).toUpperCase()} já está na sua fila.`,
+        tag: `tigredelivery-driver-${fresh[0].id}`,
+        url: '/#motorista',
+      })
+      setToast(fresh.length > 1 ? `${fresh.length} novas entregas recebidas` : 'Nova entrega recebida')
+    }
+    loadedOrdersOnce.current = true
+    setOrders(nextOrders)
     setOrdersError(error ? 'Não foi possível atualizar suas entregas.' : '')
     setOrdersLoading(false)
   }, [account.user.id])
 
   useEffect(() => {
     const timer = window.setTimeout(loadOrders, 0)
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === 'visible') loadOrders()
+    }, 8000)
+    const onVisible = () => { if (document.visibilityState === 'visible') loadOrders() }
+    document.addEventListener('visibilitychange', onVisible)
     const channel = supabase.channel(`driver-orders-${account.user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'store_orders', filter: `driver_id=eq.${account.user.id}` }, loadOrders)
       .subscribe()
-    return () => { window.clearTimeout(timer); supabase.removeChannel(channel) }
+    return () => { window.clearTimeout(timer); window.clearInterval(poll); document.removeEventListener('visibilitychange', onVisible); supabase.removeChannel(channel) }
   }, [account.user.id, loadOrders])
 
   async function updateOrder(order, action) {
@@ -219,8 +243,8 @@ function DriverHome({ account }) {
     const { error } = await supabase.rpc('driver_update_demo_order', { p_order_id: order.id, p_action: action })
     setUpdatingOrder('')
     if (error) { notify('Não foi possível atualizar esta entrega.'); return false }
-    await loadOrders()
     notify(action === 'accept' ? 'Entrega aceita' : action === 'pickup' ? 'Pedido retirado na loja' : 'Entrega finalizada')
+    await loadOrders()
     return true
   }
 
@@ -247,8 +271,8 @@ function DriverHome({ account }) {
           const pickup = order.stores?.address || 'Endereço da loja indisponível'
           const destination = order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number, order.delivery_address?.neighborhood].filter(Boolean).join(', ')
           const accepted = Boolean(order.driver_accepted_at)
-          const action = !accepted ? 'accept' : order.status === 'picked_up' ? 'deliver' : 'pickup'
-          const actionLabel = !accepted ? 'Aceitar entrega' : order.status === 'picked_up' ? 'Finalizar entrega' : 'Confirmar retirada'
+          const action = order.status === 'picked_up' ? 'deliver' : !accepted ? 'accept' : 'pickup'
+          const actionLabel = order.status === 'picked_up' ? 'Finalizar entrega' : !accepted ? 'Aceitar entrega' : 'Confirmar retirada'
           return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .32, ease: [0.22, 1, 0.36, 1] }}>
             <div className={styles.deliveryCardTop}><span><Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} /></span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
             {accepted && <DriverRouteMap order={order} location={tracking.location} />}

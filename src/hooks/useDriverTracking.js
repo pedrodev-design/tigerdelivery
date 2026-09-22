@@ -10,6 +10,7 @@ export function useDriverTracking(driverId) {
   const stopWatching = useRef(null)
   const lastSentAt = useRef(0)
   const onlineRef = useRef(false)
+  const locationRef = useRef(null)
 
   const stopWatch = useCallback(() => {
     stopWatching.current?.()
@@ -24,6 +25,7 @@ export function useDriverTracking(driverId) {
       heading: position.coords.heading,
       speed: position.coords.speed,
     }
+    locationRef.current = next
     setLocation(next)
     setError('')
     const now = Date.now()
@@ -45,6 +47,30 @@ export function useDriverTracking(driverId) {
   }, [sendLocation, stopWatch])
 
   useEffect(() => { onlineRef.current = online }, [online])
+  useEffect(() => { locationRef.current = location }, [location])
+
+  const heartbeat = useCallback(async () => {
+    if (!onlineRef.current) return false
+    const current = locationRef.current
+    const { error: heartbeatError } = await supabase.rpc('driver_heartbeat', {
+      p_latitude: current?.latitude ?? null,
+      p_longitude: current?.longitude ?? null,
+      p_accuracy_m: current?.accuracy ?? null,
+    })
+    if (heartbeatError && !heartbeatError.message?.includes('driver_is_offline')) {
+      setError('Sua conexão com a fila foi interrompida. Tentando reconectar…')
+      return false
+    }
+    if (!heartbeatError) setError(previous => previous.startsWith('Sua conexão com a fila') ? '' : previous)
+    return !heartbeatError
+  }, [])
+
+  useEffect(() => {
+    if (!online) return undefined
+    heartbeat()
+    const interval = window.setInterval(heartbeat, 20000)
+    return () => window.clearInterval(interval)
+  }, [heartbeat, online])
 
   useEffect(() => {
     const resumeTracking = () => {
