@@ -559,39 +559,39 @@
 .ordersActions a { background: #ffda00; color: #242424; }
 .ordersActions button { background: #242424; color: #fff; }
 .ordersActions svg { width: 12px; }
-.ordersPage { width: min(100%, 820px); margin: 0 auto; padding: 10px 0 70px; }
+.ordersPage { width: min(100%, 880px); margin: 0 auto; padding: 20px 0 70px; }
 .ordersPage > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
-.ordersPage > header span { color: #857000; font-size: 10px; font-weight: 750; }
-.ordersPage > header h2 { margin-top: 4px; font-family: var(--font-display); font-size: 28px; letter-spacing: -.55px; }
-.ordersPage > header button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 0; border-radius: 11px; background: #efeee8; color: #4f504a; font-size: 10px; font-weight: 700; }
+.ordersPage > header span { color: #72766b; font-size: 12px; font-weight: 500; }
+.ordersPage > header h2 { margin-top: 6px; font-family: var(--font-display); font-size: clamp(27px, 3vw, 36px); font-weight: 650; letter-spacing: -1px; }
+.ordersPage > header button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #e0e2d9; border-radius: 12px; background: #fff; color: #4f5547; font-size: 12px; font-weight: 600; }
 .ordersPage > header button svg { width: 11px; }
 .ordersError { margin-bottom: 14px; padding: 12px 14px; border-radius: 12px; background: #fff0eb; color: #9b3d25; font-size: 11px; }
-.customerOrderList { display: grid; gap: 14px; }
-.customerOrderList > article { padding: 20px; border: 1px solid #ebe9df; border-radius: 21px; background: #fff; box-shadow: 0 12px 34px #20211d0a; }
+.customerOrderList { display: grid; gap: 22px; }
+.customerOrderList > article { padding: 24px; border: 1px solid #e4e6dd; border-radius: 18px; background: #fff; }
 .customerOrderTop { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 13px; align-items: center; }
-.customerOrderTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #ffda00; color: #242424; }
+.customerOrderTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: #f4f4ed; color: #555b47; }
 .customerOrderTop > span svg { width: 16px; }
 .customerOrderTop > div { min-width: 0; }
 .customerOrderTop small, .customerOrderTop strong, .customerOrderTop p { display: block; }
-.customerOrderTop small { color: #8a8a82; font-size: 9px; }
-.customerOrderTop strong { margin-top: 2px; font-family: var(--font-display); font-size: 16px; }
-.customerOrderTop p { overflow: hidden; margin-top: 4px; color: #73746d; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.customerOrderTop > b { font-family: var(--font-display); font-size: 15px; }
+.customerOrderTop small { color: #74796b; font-size: 11px; }
+.customerOrderTop strong { margin-top: 3px; font-family: var(--font-display); font-size: 20px; font-weight: 650; }
+.customerOrderTop p { margin-top: 5px; color: #707568; font-size: 12px; line-height: 1.5; }
+.customerOrderTop > b { font-size: 15px; font-weight: 650; white-space: nowrap; }
 .liveOrderMap { position: relative; height: 250px; margin: 18px -8px 0; overflow: hidden; border-radius: 17px; background: #ecebe5; }
 .liveOrderEta { position: absolute; z-index: 5; right: 12px; bottom: 12px; left: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border-radius: 13px; background: rgba(32,33,29,.92); color: #fff; box-shadow: 0 7px 22px #20211d24; backdrop-filter: blur(10px); }
 .liveOrderEta span { color: #d6d7d0; font-size: 9px; }
 .liveOrderEta strong { color: #ffda00; font-size: 11px; }
 .customerOrderStatus { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-top: 18px; padding-top: 17px; border-top: 1px solid #efeee8; }
 .customerOrderStatus > div { display: grid; gap: 4px; }
-.customerOrderStatus span { font-size: 13px; font-weight: 800; }
-.customerOrderStatus small { color: #777970; font-size: 10px; line-height: 1.45; }
-.customerOrderStatus > strong { color: #8a8a82; font-size: 9px; font-weight: 600; white-space: nowrap; }
-.customerOrderAddress { display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 12px 13px; border-radius: 13px; background: #f5f4ef; }
+.customerOrderStatus span { font-size: 15px; font-weight: 650; }
+.customerOrderStatus small { color: #707568; font-size: 12px; line-height: 1.5; }
+.customerOrderStatus > strong { color: #74796b; font-size: 11px; font-weight: 400; white-space: nowrap; }
+.customerOrderAddress { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 0; color: #646a59; }
 .customerOrderAddress > svg { width: 14px; color: #9d8500; }
 .customerOrderAddress span { display: grid; gap: 2px; min-width: 0; }
 .customerOrderAddress small { color: #8a8a82; font-size: 8px; }
-.customerOrderAddress strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.customerOrderActions { display: flex; justify-content: flex-end; margin-top: 12px; }
+.customerOrderAddress strong { font-size: 12px; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; }
+.customerOrderActions { display: flex; justify-content: flex-end; margin-top: 20px; }
 .orderProgress { height: 4px; margin-top: 16px; overflow: hidden; border-radius: 999px; background: #ebeae4; }
 .orderProgress i { display: block; width: var(--order-progress); height: 100%; border-radius: inherit; background: #ffda00; transition: width .35s ease; }
 .cancelledOrder { opacity: .68; }
@@ -1075,36 +1075,36 @@
   .accountAvatarButton svg { width: 17px; height: 17px; color: #242424; }
 }
 
-.helpPage { display: grid; gap: 24px; width: min(100%, 1060px); margin: 0 auto 56px; }
-.helpHero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 210px; align-items: center; min-height: 250px; overflow: hidden; padding: 38px 44px; border-radius: 28px; background: #ffda00; color: #242424; }
-.helpHero::after { position: absolute; right: 145px; bottom: -110px; width: 260px; height: 260px; border: 42px solid #ffffff42; border-radius: 50%; content: ''; }
+.helpPage { display: grid; gap: 32px; width: min(100%, 980px); margin: 0 auto 64px; }
+.helpHero { display: grid; grid-template-columns: minmax(0, 1fr) 140px; align-items: center; gap: 24px; min-height: 210px; padding: 30px 0; color: #272923; }
+.helpHero::after { display: none; }
 .helpHero > div { position: relative; z-index: 1; }
-.helpHero span { font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.helpHero h2 { max-width: 540px; margin-top: 9px; font-family: var(--font-display); font-size: clamp(36px, 4.5vw, 58px); font-weight: 760; line-height: .95; letter-spacing: -2px; }
-.helpHero p { max-width: 480px; margin-top: 14px; font-size: 14px; line-height: 1.55; }
-.helpHero > img { position: relative; z-index: 1; justify-self: center; width: 176px; height: 176px; object-fit: contain; filter: drop-shadow(0 16px 18px #9d65003b); transform: rotate(7deg); }
-.helpShortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.helpShortcuts button { display: grid; grid-template-columns: 44px minmax(0, 1fr) 12px; align-items: center; gap: 13px; min-height: 104px; padding: 16px; border: 0; border-radius: 19px; background: #f3f2ed; color: #242424; font: inherit; text-align: left; transition: background .18s ease, transform .18s ease; }
-.helpShortcuts button:hover { background: #ecebe5; transform: translateY(-2px); }
-.helpShortcuts button > span { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 14px; background: #ffda00; }
+.helpHero span { color: #74796b; font-size: 12px; font-weight: 500; }
+.helpHero h1 { max-width: 580px; margin-top: 12px; font-family: var(--font-display); font-size: clamp(32px, 4vw, 48px); font-weight: 650; line-height: 1.08; letter-spacing: -1.7px; }
+.helpHero p { max-width: 480px; margin-top: 14px; color: #707568; font-size: 15px; line-height: 1.6; }
+.helpHero > img { display: block; justify-self: center; width: 130px; height: 130px; object-fit: contain; }
+.helpShortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.helpShortcuts button { display: grid; grid-template-columns: 24px minmax(0, 1fr) 12px; align-items: start; gap: 12px; min-height: 110px; padding: 22px 18px; border: 1px solid #e2e5db; border-radius: 14px; background: #fff; color: #272923; font: inherit; text-align: left; transition: border-color .18s ease, background .18s ease; }
+.helpShortcuts button:hover { background: #fafbf6; border-color: #bfc5b0; }
+.helpShortcuts button > span { display: grid; width: 24px; height: 24px; place-items: center; color: #747e50; }
 .helpShortcuts button > span svg { width: 16px; }
 .helpShortcuts button > div { min-width: 0; }
 .helpShortcuts strong, .helpShortcuts small { display: block; }
-.helpShortcuts strong { font-size: 13px; }
-.helpShortcuts small { margin-top: 4px; color: #777970; font-size: 10px; line-height: 1.4; }
-.helpShortcuts button > svg { width: 9px; color: #8d8f86; }
-.helpFaq { display: grid; grid-template-columns: .42fr 1fr; gap: 48px; padding: 40px 42px; border-radius: 28px; background: #1c1d19; color: #fff; }
-.helpFaq > header span { color: #ffda00; font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.helpFaq > header h2 { max-width: 260px; margin-top: 10px; font-family: var(--font-display); font-size: 31px; line-height: 1.05; letter-spacing: -.9px; }
+.helpShortcuts strong { font-size: 14px; font-weight: 650; }
+.helpShortcuts small { margin-top: 6px; color: #707568; font-size: 12px; line-height: 1.5; }
+.helpShortcuts button > svg { width: 9px; margin-top: 6px; color: #858e76; }
+.helpFaq { display: grid; grid-template-columns: .42fr 1fr; gap: 48px; padding: 40px 0 0; border-top: 1px solid #e3e6db; color: #272923; }
+.helpFaq > header span { color: #74796b; font-size: 12px; font-weight: 500; }
+.helpFaq > header h2 { max-width: 260px; margin-top: 10px; font-family: var(--font-display); font-size: 28px; font-weight: 650; line-height: 1.15; letter-spacing: -.7px; }
 .helpFaq > div { min-width: 0; }
-.helpFaq details { border-bottom: 1px solid #ffffff18; }
-.helpFaq details:first-child { border-top: 1px solid #ffffff18; }
-.helpFaq summary { display: grid; grid-template-columns: 30px minmax(0, 1fr) 18px; align-items: center; gap: 12px; min-height: 62px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; }
+.helpFaq details { border-bottom: 1px solid #e3e6db; }
+.helpFaq details:first-child { border-top: 0; }
+.helpFaq summary { display: grid; grid-template-columns: minmax(0, 1fr) 18px; align-items: center; gap: 14px; min-height: 64px; color: #272923; font-size: 14px; font-weight: 600; cursor: pointer; list-style: none; }
 .helpFaq summary::-webkit-details-marker { display: none; }
 .helpFaq summary span { color: #ffda00; font-family: var(--font-display); font-size: 12px; }
-.helpFaq summary > svg { width: 12px; color: #ffda00; transition: transform .2s ease; }
+.helpFaq summary > svg { width: 12px; color: #7a826b; transition: transform .2s ease; }
 .helpFaq details[open] summary > svg { transform: rotate(45deg); }
-.helpFaq details p { max-width: 620px; padding: 0 30px 18px 42px; color: #bfc1b9; font-size: 12px; line-height: 1.65; }
+.helpFaq details p { max-width: 620px; padding: 0 28px 22px 0; color: #707568; font-size: 13px; line-height: 1.7; }
 
 @media (min-width: 801px) {
   .desktopHelp { min-height: 40px; padding: 0 4px; border-radius: 0; background: transparent; color: #413d28; }
@@ -1123,18 +1123,28 @@
   .mobileInstallDismiss svg { width: 11px; }
   .mobileInstallBanner > p { grid-column: 1 / -1; margin: 0; padding: 9px 10px; border-radius: 10px; background: #ffffff12; color: #dedfd8; font-size: 10px; line-height: 1.4; }
   .helpPage { gap: 16px; margin-bottom: 24px; }
-  .helpHero { grid-template-columns: minmax(0, 1fr) 90px; min-height: 168px; padding: 22px 18px; border-radius: 22px; }
+  .helpHero { grid-template-columns: minmax(0, 1fr) 76px; gap: 12px; min-height: 176px; padding: 22px 0; }
   .helpHero::after { right: 38px; bottom: -75px; width: 170px; height: 170px; border-width: 28px; }
-  .helpHero h2 { margin-top: 7px; font-size: 31px; letter-spacing: -1.1px; }
-  .helpHero p { margin-top: 9px; font-size: 11px; line-height: 1.45; }
-  .helpHero > img { width: 88px; height: 88px; }
+  .helpHero h1 { margin-top: 7px; font-size: 31px; letter-spacing: -1.1px; }
+  .helpHero p { margin-top: 12px; font-size: 13px; line-height: 1.6; }
+  .helpHero > img { width: 76px; height: 76px; }
   .helpShortcuts { grid-template-columns: 1fr; gap: 8px; }
-  .helpShortcuts button { grid-template-columns: 42px minmax(0, 1fr) 10px; min-height: 76px; padding: 11px 13px; border-radius: 17px; }
-  .helpShortcuts button > span { width: 42px; height: 42px; border-radius: 13px; }
-  .helpShortcuts strong { font-size: 12px; }
-  .helpFaq { display: block; padding: 24px 18px; border-radius: 22px; }
+  .helpShortcuts button { grid-template-columns: 24px minmax(0, 1fr) 10px; min-height: 82px; padding: 17px 14px; border-radius: 12px; }
+  .helpShortcuts button > span { width: 24px; height: 24px; }
+  .helpShortcuts strong { font-size: 14px; }
+  .helpFaq { display: block; margin-top: 10px; padding: 28px 0 0; }
   .helpFaq > header { margin-bottom: 20px; }
   .helpFaq > header h2 { max-width: 230px; margin-top: 7px; font-size: 25px; }
-  .helpFaq summary { grid-template-columns: 26px minmax(0, 1fr) 16px; gap: 8px; min-height: 58px; font-size: 12px; }
-  .helpFaq details p { padding: 0 12px 17px 34px; font-size: 11px; }
+  .helpFaq summary { grid-template-columns: minmax(0, 1fr) 16px; gap: 12px; min-height: 62px; font-size: 14px; }
+  .helpFaq details p { padding: 0 20px 20px 0; font-size: 13px; }
+}
+
+@media (max-width: 600px) {
+  .customerOrderList > article { padding: 18px 16px; }
+  .customerOrderTop { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
+  .customerOrderTop > span { width: 40px; height: 40px; }
+  .customerOrderTop > b { grid-column: 2; }
+  .customerOrderTop strong { font-size: 18px; }
+  .customerOrderStatus { flex-wrap: wrap; gap: 8px; }
+  .customerOrderActions > button { width: 100%; }
 }

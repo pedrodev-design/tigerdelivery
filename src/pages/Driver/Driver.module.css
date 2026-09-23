@@ -28,28 +28,29 @@
 .onlineSwitch .switchTrack i { background: #ffda00; }
 .onlineSwitch .switchTrack i b { background: #20211d; box-shadow: 0 0 0 3px #20211d14; }
 .onlineSwitch .switchCopy small { color: #bfc1b9; }
-.availabilityCard { display: grid; grid-template-columns: 86px 1fr; gap: 24px; align-items: center; min-height: 176px; margin-top: 30px; padding: 30px; border-radius: 28px; background: #20211d; color: #fff; overflow: hidden; }
-.availabilityCard.available { background: #183e2b; }
-.radar { position: relative; display: grid; place-items: center; width: 78px; height: 78px; border-radius: 50%; background: #ffda00; color: #20211d; font-size: 26px; }
-.available .radar i { position: absolute; inset: -9px; border: 2px solid #ffda00; border-radius: 50%; animation: radar 1.8s ease-out infinite; }
-.availabilityCard small, .earnings small { color: #ffda00; font-size: 9px; font-weight: 850; letter-spacing: .02em; text-transform: capitalize; }
-.availabilityCard h2 { margin-top: 6px; font-family: var(--font-display); font-size: clamp(22px, 3vw, 31px); letter-spacing: -.035em; }
-.availabilityCard p { max-width: 600px; margin-top: 8px; color: #c7c9c2; font-size: 12px; line-height: 1.55; }
+.availabilityCard { display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: center; min-height: 140px; margin-top: 30px; padding: 24px; border: 1px solid #e0e4d7; border-radius: 16px; background: #fff; color: #272923; }
+.availabilityCard.available { border-color: #cedac7; background: #f0f5eb; }
+.radar { position: relative; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #eceee3; color: #555e40; font-size: 21px; }
+.available .radar i { position: absolute; top: 1px; right: 0; width: 11px; height: 11px; border: 2px solid #f0f5eb; border-radius: 50%; background: #387547; }
+.availabilityCard small { color: #64704e; font-size: 12px; font-weight: 500; }
+.earnings small { color: #ffda00; font-size: 11px; font-weight: 600; }
+.availabilityCard h2 { margin-top: 5px; font-family: var(--font-display); font-size: clamp(23px, 2.4vw, 28px); font-weight: 650; letter-spacing: -.6px; }
+.availabilityCard p { max-width: 600px; margin-top: 8px; color: #6b735e; font-size: 13px; line-height: 1.6; }
 .deliveryQueue { margin-top: 30px; }
 .deliveryQueue > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
 .deliveryQueue > header span { color: #8a7600; font-size: 10px; font-weight: 800; }
 .deliveryQueue > header h2 { margin-top: 4px; font-family: var(--font-display); font-size: 25px; letter-spacing: -.04em; }
-.deliveryQueue > header button { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 0; border-radius: 11px; background: #e8e7e1; color: #55574f; font: inherit; font-size: 10px; font-weight: 750; cursor: pointer; }
-.deliveryCard { padding: 22px; border-radius: 24px; background: #fff; box-shadow: 0 14px 40px #20211d0c; }
+.deliveryQueue > header button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1px solid #dcded4; border-radius: 12px; background: #fff; color: #535d45; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.deliveryCard { padding: 24px; border: 1px solid #e0e3d8; border-radius: 18px; background: #fff; }
 .deliveryCard + .deliveryCard { margin-top: 12px; }
 .deliveryCardTop { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 13px; }
-.deliveryCardTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #ffda00; color: #20211d; }
+.deliveryCardTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: #f1f3e9; color: #606b48; }
 .deliveryCardTop > div { min-width: 0; }
 .deliveryCardTop small, .deliveryCardTop strong { display: block; }
-.deliveryCardTop small { color: #7a7c73; font-size: 9px; font-weight: 700; }
-.deliveryCardTop strong { margin-top: 3px; font-family: var(--font-display); font-size: 16px; }
+.deliveryCardTop small { color: #717866; font-size: 11px; font-weight: 500; }
+.deliveryCardTop strong { margin-top: 4px; font-family: var(--font-display); font-size: 20px; font-weight: 650; }
 .deliveryCardTop > b { padding: 7px 10px; border-radius: 10px; background: #e6f4e9; color: #24783b; font-size: 12px; white-space: nowrap; }
-.driverChat { display: flex; justify-content: flex-end; margin-top: 12px; }
+.driverChat { display: flex; justify-content: flex-end; margin-top: 18px; }
 .locationNotice { display: flex; align-items: center; gap: 9px; margin-top: 16px; padding: 12px 14px; border-radius: 13px; background: #fff0eb; color: #973f29; font-size: 10px; }
 .locationNotice span { flex: 1; }
 .locationNotice button { min-height: 32px; padding: 0 12px; border: 0; border-radius: 10px; background: #20211d; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
@@ -66,15 +67,15 @@
 .deliveryRoute > div:last-child i { background: #ffda00; box-shadow: 0 0 0 2px #c4a700; }
 .deliveryRoute span { min-width: 0; }
 .deliveryRoute small, .deliveryRoute strong, .deliveryRoute p { display: block; }
-.deliveryRoute small { color: #8a8c83; font-size: 8px; }
-.deliveryRoute strong { margin-top: 2px; font-size: 12px; }
-.deliveryRoute p { margin-top: 3px; color: #71736a; font-size: 10px; line-height: 1.45; }
+.deliveryRoute small { color: #777e6a; font-size: 11px; }
+.deliveryRoute strong { margin-top: 3px; font-size: 14px; font-weight: 600; }
+.deliveryRoute p { margin-top: 4px; color: #6d7660; font-size: 12px; line-height: 1.55; }
 .deliveryItems { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; margin-top: 20px; padding: 13px; border-radius: 14px; background: #f3f2ed; }
 .deliveryItems > svg { width: 13px; color: #9b8500; }
-.deliveryItems span { overflow: hidden; color: #55574f; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.deliveryItems small { color: #777970; font-size: 9px; white-space: nowrap; }
+.deliveryItems span { overflow: hidden; color: #5d6651; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.deliveryItems small { color: #737b66; font-size: 11px; white-space: nowrap; }
 .deliveryActions { display: grid; grid-template-columns: .8fr 1.2fr; gap: 9px; margin-top: 14px; }
-.deliveryActions a, .deliveryActions button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 10px; padding: 0 14px; border: 0; border-radius: 13px; font: inherit; font-size: 11px; font-weight: 800; text-decoration: none; }
+.deliveryActions a, .deliveryActions button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 10px; padding: 0 14px; border: 0; border-radius: 12px; font: inherit; font-size: 13px; font-weight: 650; text-decoration: none; }
 .deliveryActions a, .deliveryActions .routeAction { background: #efeee8; color: #20211d; }
 .deliveryActions button { background: #ffda00; color: #20211d; cursor: pointer; }
 .deliveryActions button:disabled { cursor: wait; opacity: .55; }

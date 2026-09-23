@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { Dialog } from 'radix-ui'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp, faComments, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { AnimatePresence, motion } from 'motion/react'
+import { faCommentDots } from '@fortawesome/free-regular-svg-icons'
+import { ChatPanel } from './ChatPanel'
 import { supabase } from '../../lib/supabase'
 import { playNotificationSound } from '../../services/notifications'
 import styles from './OrderChat.module.css'
@@ -14,7 +14,7 @@ function mergeMessage(current, incoming) {
   return [...current, incoming].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 }
 
-export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel }) {
+export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel, orderLabel }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -80,29 +80,10 @@ export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel }) {
   useEffect(() => {
     if (!open) return undefined
     const pollMessages = window.setInterval(() => { void loadMessages(false) }, 7000)
-    const focusComposer = window.setTimeout(() => composerRef.current?.focus(), 260)
     return () => {
       window.clearInterval(pollMessages)
-      window.clearTimeout(focusComposer)
     }
   }, [loadMessages, open])
-
-  useEffect(() => {
-    if (!open) return
-    requestAnimationFrame(() => listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' }))
-  }, [messages, open])
-
-  useEffect(() => {
-    if (!open) return undefined
-    const close = event => { if (event.key === 'Escape') closeChat() }
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', close)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', close)
-    }
-  }, [open])
 
   async function sendMessage(event) {
     event.preventDefault()
@@ -124,40 +105,17 @@ export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel }) {
     setMessages(current => mergeMessage(current, data))
   }
 
-  const dialog = createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div key="order-chat-dialog" className={styles.backdrop} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) closeChat() }}>
-          <motion.section id={dialogId} className={styles.panel} role="dialog" aria-modal="true" aria-label={`Conversa com ${otherLabel}`} initial={{ opacity: 0, y: 22, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22, ease: [0.22, 1, 0.36, 1] }}>
-            <header className={styles.header}>
-              <span className={styles.avatar}><Icon icon={faComments} /></span>
-              <div><small>Pedido #{orderId.slice(0, 6).toUpperCase()}</small><strong>{otherLabel}</strong><p>Conversa protegida pelo TigreDelivery</p></div>
-              <button type="button" onClick={closeChat} aria-label="Fechar conversa"><Icon icon={faXmark} /></button>
-            </header>
-            <div className={styles.messages} ref={listRef} aria-live="polite">
-              {loading && <div className={styles.loading}><i /><i /><i /></div>}
-              {!loading && !messages.length && !error && <div className={styles.empty}><Icon icon={faComments} /><strong>Conversem por aqui</strong><p>Use o chat para combinar detalhes da retirada ou da entrega.</p></div>}
-              {messages.map(message => {
-                const mine = message.sender_id === currentUserId
-                return <div className={`${styles.message} ${mine ? styles.mine : ''}`} key={message.id}><span>{message.body}</span><small>{new Date(message.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small></div>
-              })}
-            </div>
-            {error && <p className={styles.error} role="status">{error}</p>}
-            <form className={styles.composer} onSubmit={sendMessage}>
-              <textarea ref={composerRef} value={draft} onChange={event => setDraft(event.target.value.slice(0, 1000))} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} placeholder="Digite uma mensagem" rows={1} aria-label="Mensagem" />
-              <button type="submit" disabled={!draft.trim() || sending} aria-label="Enviar mensagem"><Icon icon={faArrowUp} /></button>
-            </form>
-          </motion.section>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    document.body,
-  )
-
-  return <>
-    <button type="button" className={styles.trigger} onClick={openChat} aria-haspopup="dialog" aria-expanded={open} aria-controls={dialogId}>
-      <Icon icon={faComments} /><span>{buttonLabel || `Falar com ${otherLabel.toLowerCase()}`}</span>{unread > 0 && <b>{Math.min(unread, 9)}</b>}
-    </button>
-    {dialog}
-  </>
+  return <Dialog.Root open={open} onOpenChange={nextOpen => nextOpen ? openChat() : closeChat()}>
+    <Dialog.Trigger asChild>
+      <button type="button" className={styles.trigger}>
+        <Icon icon={faCommentDots} /><span>{buttonLabel || `Falar com ${otherLabel.toLowerCase()}`}</span>{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
+      </button>
+    </Dialog.Trigger>
+    <Dialog.Portal>
+      <Dialog.Overlay className={styles.backdrop} />
+      <Dialog.Content id={dialogId} className={styles.panel}>
+        <ChatPanel orderId={orderId} currentUserId={currentUserId} otherLabel={otherLabel} orderLabel={orderLabel} messages={messages} loading={loading} sending={sending} error={error} draft={draft} onDraftChange={setDraft} onSend={sendMessage} listRef={listRef} composerRef={composerRef} />
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
 }

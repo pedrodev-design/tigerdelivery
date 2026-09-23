@@ -281,7 +281,7 @@ function DriverHome({ account }) {
               <div><i /><span><small>Entrega</small><strong>{order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
             </div>
             <div className={styles.deliveryItems}><Icon icon={faReceipt} /><span>{(order.store_order_items || []).map(item => `${item.quantity}× ${item.product_name}`).join(' · ') || 'Itens do pedido'}</span><small>{order.payment_method === 'cash' ? 'Receber em dinheiro' : order.payment_method === 'card' ? 'Pago no cartão' : 'Pago pelo Pix'}</small></div>
-            <div className={styles.driverChat}><OrderChat orderId={order.id} currentUserId={account.user.id} otherLabel="Cliente" /></div>
+            <div className={styles.driverChat}><OrderChat orderId={order.id} currentUserId={account.user.id} otherLabel="Cliente" orderLabel={order.stores?.name} /></div>
             <div className={styles.deliveryActions}><button type="button" className={styles.routeAction} onClick={() => setNavigationOrderId(order.id)}><Icon icon={faRoute} />Navegar no app</button><button disabled={!online || updatingOrder === order.id} onClick={() => updateOrder(order, action)}>{updatingOrder === order.id ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button></div>
           </motion.article>
         })}
