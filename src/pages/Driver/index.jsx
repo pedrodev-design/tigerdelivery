@@ -31,6 +31,8 @@ import { useDriverTracking } from '../../hooks/useDriverTracking'
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay'
 import { FaceScan } from '../../components/FaceScan'
 import { OrderChat } from '../../components/OrderChat'
+import { OrderIdentity } from '../../components/OrderIdentity'
+import { loadOrderPresentations, orderPhoto } from '../../services/orderPresentation'
 import { formatDistance, formatEta, getDrivingRoute } from '../../services/routing'
 import { formatCpf, formatPhone, isValidCpf, onlyDigits } from '../../utils/validators'
 import { supabase } from '../../lib/supabase'
@@ -183,6 +185,7 @@ function DriverHome({ account }) {
   const { online } = tracking
   const [toast, setToast] = useState('')
   const [orders, setOrders] = useState([])
+  const [presentations, setPresentations] = useState({})
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [ordersError, setOrdersError] = useState('')
   const [updatingOrder, setUpdatingOrder] = useState('')
@@ -206,6 +209,7 @@ function DriverHome({ account }) {
       .order('created_at', { ascending: false })
       .limit(40)
     const nextOrders = data || []
+    if (!error && nextOrders.length) setPresentations(await loadOrderPresentations(nextOrders))
     const active = nextOrders.filter(order => !['delivered', 'cancelled'].includes(order.status))
     const fresh = active.filter(order => !knownActiveOrderIds.current.has(order.id))
     knownActiveOrderIds.current = new Set(active.map(order => order.id))
@@ -274,14 +278,15 @@ function DriverHome({ account }) {
           const action = order.status === 'picked_up' ? 'deliver' : !accepted ? 'accept' : 'pickup'
           const actionLabel = order.status === 'picked_up' ? 'Finalizar entrega' : !accepted ? 'Aceitar entrega' : 'Confirmar retirada'
           return <motion.article className={styles.deliveryCard} key={order.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .32, ease: [0.22, 1, 0.36, 1] }}>
-            <div className={styles.deliveryCardTop}><span><Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} /></span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
+            <div className={styles.deliveryCardTop}><span>{orderPhoto(presentations[order.id]) ? <img src={orderPhoto(presentations[order.id])} alt="" /> : <Icon icon={order.status === 'picked_up' ? faRoute : faBoxOpen} />}</span><div><small>{order.status === 'picked_up' ? 'Pedido a caminho' : accepted ? 'Entrega aceita' : 'Nova entrega'}</small><strong>Pedido #{order.id.slice(0, 6).toUpperCase()}</strong></div><b>{money(order.driver_fee)}</b></div>
+            <div className={styles.deliveryPeople}><OrderIdentity name={presentations[order.id]?.customer_name || order.delivery_address?.recipient_name} photo={presentations[order.id]?.customer_avatar_url} label="Cliente" /><OrderIdentity name={presentations[order.id]?.driver_name || account.profile?.full_name} photo={presentations[order.id]?.driver_avatar_url || account.profile?.avatar_url} label="Motorista" /><OrderIdentity name={order.stores?.name} photo={presentations[order.id]?.store_logo_url} label="Loja" /></div>
             {accepted && <DriverRouteMap order={order} location={tracking.location} />}
             <div className={styles.deliveryRoute}>
               <div><i /><span><small>Retirada</small><strong>{order.stores?.name || 'Loja TigreFood'}</strong><p>{pickup}</p></span></div>
-              <div><i /><span><small>Entrega</small><strong>{order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
+              <div><i /><span><small>Entrega</small><strong>{presentations[order.id]?.customer_name || order.delivery_address?.recipient_name || 'Cliente TigreFood'}</strong><p>{destination || 'Endereço não informado'}</p></span></div>
             </div>
             <div className={styles.deliveryItems}><Icon icon={faReceipt} /><span>{(order.store_order_items || []).map(item => `${item.quantity}× ${item.product_name}`).join(' · ') || 'Itens do pedido'}</span><small>{order.payment_method === 'cash' ? 'Receber em dinheiro' : order.payment_method === 'card' ? 'Pago no cartão' : 'Pago pelo Pix'}</small></div>
-            <div className={styles.driverChat}><OrderChat orderId={order.id} currentUserId={account.user.id} otherLabel="Cliente" orderLabel={order.stores?.name} /></div>
+            <div className={styles.driverChat}><OrderChat orderId={order.id} currentUserId={account.user.id} otherLabel="Cliente" orderLabel={order.stores?.name} context={presentations[order.id]} /></div>
             <div className={styles.deliveryActions}><button type="button" className={styles.routeAction} onClick={() => setNavigationOrderId(order.id)}><Icon icon={faRoute} />Navegar no app</button><button disabled={!online || updatingOrder === order.id} onClick={() => updateOrder(order, action)}>{updatingOrder === order.id ? <i className={styles.spinner} /> : <>{actionLabel}<Icon icon={faArrowRight} /></>}</button></div>
           </motion.article>
         })}

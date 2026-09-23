@@ -14,7 +14,7 @@ function mergeMessage(current, incoming) {
   return [...current, incoming].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
 }
 
-export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel, orderLabel }) {
+export function OrderChat({ orderId, currentUserId, otherLabel = 'equipe do pedido', buttonLabel, orderLabel, context }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -108,13 +108,13 @@ export function OrderChat({ orderId, currentUserId, otherLabel, buttonLabel, ord
   return <Dialog.Root open={open} onOpenChange={nextOpen => nextOpen ? openChat() : closeChat()}>
     <Dialog.Trigger asChild>
       <button type="button" className={styles.trigger}>
-        <Icon icon={faCommentDots} /><span>{buttonLabel || `Falar com ${otherLabel.toLowerCase()}`}</span>{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
+        <Icon icon={faCommentDots} /><span>{buttonLabel || 'Conversar sobre o pedido'}</span>{unread > 0 && <b>{unread > 9 ? '9+' : unread}</b>}
       </button>
     </Dialog.Trigger>
     <Dialog.Portal>
       <Dialog.Overlay className={styles.backdrop} />
       <Dialog.Content id={dialogId} className={styles.panel}>
-        <ChatPanel orderId={orderId} currentUserId={currentUserId} otherLabel={otherLabel} orderLabel={orderLabel} messages={messages} loading={loading} sending={sending} error={error} draft={draft} onDraftChange={setDraft} onSend={sendMessage} listRef={listRef} composerRef={composerRef} />
+        <ChatPanel orderId={orderId} currentUserId={currentUserId} otherLabel={otherLabel} orderLabel={orderLabel} context={context} messages={messages} loading={loading} sending={sending} error={error} draft={draft} onDraftChange={setDraft} onSend={sendMessage} listRef={listRef} composerRef={composerRef} />
       </Dialog.Content>
     </Dialog.Portal>
   </Dialog.Root>

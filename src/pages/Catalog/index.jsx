@@ -49,6 +49,8 @@ import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'motion/
 import useEmblaCarousel from 'embla-carousel-react'
 import { useDeliveryTracking } from '../../hooks/useDeliveryTracking'
 import { OrderChat } from '../../components/OrderChat'
+import { OrderIdentity } from '../../components/OrderIdentity'
+import { loadOrderPresentations, orderPhoto } from '../../services/orderPresentation'
 import { formatEta } from '../../services/routing'
 import { geolocationMessage, getBestPosition } from '../../services/geolocation'
 import { categories, products, money } from './data'
@@ -470,7 +472,7 @@ const orderStatus = {
   cancelled: { label: 'Cancelado', step: 0 },
 }
 
-function CustomerOrderCard({ order, currentUserId }) {
+function CustomerOrderCard({ order, currentUserId, context }) {
   const state = orderStatus[order.status] || orderStatus.new
   const items = order.store_order_items || []
   const addressLabel = order.delivery_address?.label || [order.delivery_address?.street, order.delivery_address?.number].filter(Boolean).join(', ')
@@ -489,20 +491,22 @@ function CustomerOrderCard({ order, currentUserId }) {
             ? 'Entrega concluída.'
             : 'Acompanhe as próximas atualizações por aqui.'
   return <motion.article className={order.status === 'cancelled' ? styles.cancelledOrder : ''} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-    <div className={styles.customerOrderTop}><span><Icon icon={Store} /></span><div><small>Pedido #{order.id.slice(0, 6).toUpperCase()}</small><strong>{order.stores?.name || 'TigreFood'}</strong><p>{items.map(item => `${item.quantity}× ${item.product_name}`).join(' · ')}</p></div><b>{money(Number(order.total))}</b></div>
+    <div className={styles.customerOrderTop}><span>{orderPhoto(context) ? <img src={orderPhoto(context)} alt="" /> : <Icon icon={Store} />}</span><div><small>Pedido #{order.id.slice(0, 6).toUpperCase()}</small><strong>{order.stores?.name || 'TigreFood'}</strong><p>{items.map(item => `${item.quantity}× ${item.product_name}`).join(' · ')}</p></div><b>{money(Number(order.total))}</b></div>
     {isLive && <div className={styles.liveOrderMap}>
       <Suspense fallback={<div className={styles.mapLoading}>Abrindo rota…</div>}><DeliveryMap center={mapCenter} zoom={13.5} interactive={false} driverLocation={tracking.driverPoint} storeLocation={tracking.store} destination={tracking.destination} route={tracking.route} /></Suspense>
       <div className={styles.liveOrderEta}><span>Motorista em movimento</span><strong>{tracking.routeMeta ? formatEta(tracking.routeMeta.duration) : 'Calculando rota…'}</strong></div>
     </div>}
     <div className={styles.customerOrderStatus}><div><span>{state.label}</span><small>{statusText}</small></div><strong>{new Date(order.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</strong></div>
+    <div className={styles.orderPeople}><OrderIdentity name={context?.customer_name} photo={context?.customer_avatar_url} label="Cliente" />{order.driver_id && <OrderIdentity name={context?.driver_name} photo={context?.driver_avatar_url} label="Seu motorista" />}</div>
     {order.fulfillment_type === 'delivery' && addressLabel && <div className={styles.customerOrderAddress}><Icon icon={MapPin} /><span><strong>{addressLabel}</strong></span></div>}
     {order.status !== 'cancelled' && <div className={styles.orderProgress} aria-label={`Etapa ${state.step} de 5`}><i style={{ '--order-progress': `${Math.max(8, state.step * 20)}%` }} /></div>}
-    {order.driver_id && !['cancelled', 'delivered'].includes(order.status) && <div className={styles.customerOrderActions}><OrderChat orderId={order.id} currentUserId={currentUserId} otherLabel="Motorista" orderLabel={order.stores?.name} /></div>}
+    {!['cancelled', 'delivered'].includes(order.status) && <div className={styles.customerOrderActions}><OrderChat orderId={order.id} currentUserId={currentUserId} otherLabel="Loja" orderLabel={order.stores?.name} context={context} /></div>}
   </motion.article>
 }
 
 function OrdersPage({ user, onBrowse }) {
   const [orders, setOrders] = useState([])
+  const [presentations, setPresentations] = useState({})
   const [loading, setLoading] = useState(Boolean(user))
   const [error, setError] = useState('')
 
@@ -515,6 +519,7 @@ function OrdersPage({ user, onBrowse }) {
       .order('created_at', { ascending: false })
       .limit(30)
     setOrders(data || [])
+    if (!queryError && data?.length) setPresentations(await loadOrderPresentations(data))
     setError(queryError ? 'Não foi possível atualizar seus pedidos agora.' : '')
     setLoading(false)
   }, [user])
@@ -538,7 +543,7 @@ function OrdersPage({ user, onBrowse }) {
   return <section className={styles.ordersPage}>
     <header><div><span>Seus pedidos</span><h2>Da cozinha até você.</h2></div><button onClick={loadOrders}><Icon icon={Spinner} />Atualizar</button></header>
     {error && <p className={styles.ordersError}>{error}</p>}
-    <div className={styles.customerOrderList}>{orders.map(order => <CustomerOrderCard key={order.id} order={order} currentUserId={user.id} />)}</div>
+    <div className={styles.customerOrderList}>{orders.map(order => <CustomerOrderCard key={order.id} order={order} currentUserId={user.id} context={presentations[order.id]} />)}</div>
   </section>
 }
 

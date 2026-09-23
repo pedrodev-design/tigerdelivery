@@ -571,6 +571,9 @@
 .customerOrderTop { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 13px; align-items: center; }
 .customerOrderTop > span { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: #f4f4ed; color: #555b47; }
 .customerOrderTop > span svg { width: 16px; }
+.customerOrderTop > span { overflow: hidden; }
+.customerOrderTop > span img { width: 100%; height: 100%; object-fit: cover; }
+.orderPeople { display: flex; gap: 16px; margin-top: 14px; padding: 11px 0 0; border-top: 1px solid #ecebe4; }
 .customerOrderTop > div { min-width: 0; }
 .customerOrderTop small, .customerOrderTop strong, .customerOrderTop p { display: block; }
 .customerOrderTop small { color: #74796b; font-size: 11px; }
