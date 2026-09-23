@@ -25,9 +25,26 @@ export function OrderChat({ orderId, currentUserId, otherLabel = 'equipe do pedi
   const openRef = useRef(false)
   const listRef = useRef(null)
   const composerRef = useRef(null)
+  const panelRef = useRef(null)
   const dialogId = `order-chat-${orderId}`
 
   useEffect(() => { openRef.current = open }, [open])
+
+  useEffect(() => {
+    if (!open || !window.visualViewport) return undefined
+    const viewport = window.visualViewport
+    const resize = () => {
+      panelRef.current?.style.setProperty('--chat-height', `${viewport.height}px`)
+      panelRef.current?.style.setProperty('--chat-top', `${viewport.offsetTop}px`)
+    }
+    resize()
+    viewport.addEventListener('resize', resize)
+    viewport.addEventListener('scroll', resize)
+    return () => {
+      viewport.removeEventListener('resize', resize)
+      viewport.removeEventListener('scroll', resize)
+    }
+  }, [open])
 
   const loadMessages = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true)
@@ -113,7 +130,7 @@ export function OrderChat({ orderId, currentUserId, otherLabel = 'equipe do pedi
     </Dialog.Trigger>
     <Dialog.Portal>
       <Dialog.Overlay className={styles.backdrop} />
-      <Dialog.Content id={dialogId} className={styles.panel}>
+      <Dialog.Content ref={panelRef} id={dialogId} className={styles.panel} onOpenAutoFocus={event => { event.preventDefault(); panelRef.current?.focus() }}>
         <ChatPanel orderId={orderId} currentUserId={currentUserId} otherLabel={otherLabel} orderLabel={orderLabel} context={context} messages={messages} loading={loading} sending={sending} error={error} draft={draft} onDraftChange={setDraft} onSend={sendMessage} listRef={listRef} composerRef={composerRef} />
       </Dialog.Content>
     </Dialog.Portal>

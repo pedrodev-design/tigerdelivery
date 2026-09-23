@@ -1,7 +1,7 @@
-import { Fragment, useEffect, useRef } from 'react'
+import { Fragment, useEffect, useId, useRef, useState } from 'react'
 import { Dialog } from 'radix-ui'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUp, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faArrowUp, faCheck, faChevronDown, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { orderPhoto } from '../../services/orderPresentation'
 import styles from './OrderChat.module.css'
 
@@ -15,6 +15,8 @@ function PersonPhoto({ name, photo }) {
 
 export function ChatPanel({ orderId, currentUserId, orderLabel, context, messages, loading, sending, error, draft, onDraftChange, onSend, listRef, composerRef }) {
   const nearBottom = useRef(true)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const detailsId = useId()
   const lastMessage = messages.at(-1)
   useEffect(() => {
     if (!nearBottom.current && lastMessage?.sender_id !== currentUserId) return undefined
@@ -43,17 +45,20 @@ export function ChatPanel({ orderId, currentUserId, orderLabel, context, message
     <header className={styles.header}>
       <div className={styles.identity}>
         <span className={styles.headerEyebrow}>TigreDelivery · pedido #{orderId.slice(0, 6).toUpperCase()}</span>
-        <Dialog.Title className={styles.title}>Conversa do pedido</Dialog.Title>
-        <Dialog.Description className={styles.subtitle}>{context?.driver_id ? 'Cliente, loja e motorista no mesmo lugar' : 'Converse com a loja sobre seu pedido'}</Dialog.Description>
+        <Dialog.Title className={styles.title}><span className={styles.desktopOnly}>Conversa do pedido</span><span className={styles.mobileOnly}>{context?.store_name || orderLabel || 'Conversa'}</span></Dialog.Title>
+        <Dialog.Description className={styles.subtitle}><span className={styles.desktopOnly}>{context?.driver_id ? 'Cliente, loja e motorista no mesmo lugar' : 'Converse com a loja sobre seu pedido'}</span><span className={styles.mobileOnly}>Pedido #{orderId.slice(0, 6).toUpperCase()}</span></Dialog.Description>
       </div>
-      <Dialog.Close className={styles.close} aria-label="Fechar conversa"><FontAwesomeIcon icon={faXmark} /></Dialog.Close>
+      <Dialog.Close className={styles.close} aria-label="Fechar conversa"><FontAwesomeIcon className={styles.desktopOnly} icon={faXmark} /><FontAwesomeIcon className={styles.mobileOnly} icon={faArrowLeft} /></Dialog.Close>
+      <button type="button" className={styles.detailsToggle} aria-label={detailsOpen ? 'Ocultar detalhes do pedido' : 'Ver detalhes do pedido'} aria-expanded={detailsOpen} aria-controls={detailsId} onClick={() => setDetailsOpen(value => !value)}><FontAwesomeIcon icon={faChevronDown} /></button>
     </header>
+    <div id={detailsId} className={styles.details} data-expanded={detailsOpen}>
     <div className={styles.orderContext}>
       <span className={styles.orderMark}>{picture ? <img src={picture} alt="" /> : <span aria-hidden="true">TD</span>}</span>
       <div><strong>{context?.item_name || orderLabel || 'Seu pedido'}</strong><span>{context?.store_name || orderLabel || 'TigreDelivery'}{context?.item_count > 1 ? ` · +${context.item_count - 1} ${context.item_count === 2 ? 'item' : 'itens'}` : ''}</span></div>
     </div>
     <div className={styles.participants} aria-label="Participantes da conversa">
       {people.map(person => <span key={person.role} className={styles.participant}><PersonPhoto name={person.name} photo={person.photo} /><span><small>{person.role}</small><strong>{person.name}</strong></span></span>)}
+    </div>
     </div>
     <div className={styles.messages} ref={listRef} onScroll={event => {
       const list = event.currentTarget
@@ -85,7 +90,7 @@ export function ChatPanel({ orderId, currentUserId, orderLabel, context, message
       {!loading && !error && !messages.length && <div className={styles.suggestions} aria-label="Sugestões de mensagem">{['Olá! Tudo certo com o pedido?', 'Pode me dar uma atualização?'].map(value => <button type="button" key={value} onClick={() => chooseReply(value)}>{value}</button>)}</div>}
       <form className={styles.composer} onSubmit={onSend}>
         <textarea ref={composerRef} value={draft} maxLength={1000} onChange={event => onDraftChange(event.target.value)} onKeyDown={event => {
-          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() }
+          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && !window.matchMedia('(max-width: 800px)').matches) { event.preventDefault(); event.currentTarget.form?.requestSubmit() }
         }} placeholder="Escreva sua mensagem…" rows={Math.min(4, Math.max(1, draft.split('\n').length))} aria-label="Mensagem" />
         <button type="submit" disabled={!draft.trim() || sending} aria-label={sending ? 'Enviando mensagem' : 'Enviar mensagem'}>{sending ? <i className={styles.sending} /> : <FontAwesomeIcon icon={faArrowUp} />}</button>
       </form>

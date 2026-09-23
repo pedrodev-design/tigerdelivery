@@ -207,7 +207,15 @@
   .availabilityCard h2 { font-size: 21px; }
   .deliveryQueue { margin-top: 24px; }
   .deliveryQueue > header h2 { font-size: 21px; }
-  .deliveryCard { padding: 17px; border-radius: 20px; }
+  .deliveryCard { padding: 18px 16px; border-color: #ececea; border-radius: 14px; box-shadow: none; }
+  .deliveryCardTop strong { font-family: var(--font-body); font-size: 16px; font-weight: 600; }
+  .deliveryCardTop > b { padding: 0; border-radius: 0; background: transparent; color: #333; font-size: 14px; }
+  .deliveryPeople { padding: 0; border: 0; }
+  .deliveryPeople > span:nth-child(n+2) { display: none; }
+  .deliveryItems { padding: 12px 0; border-top: 1px solid #f0f0ed; border-bottom: 1px solid #f0f0ed; border-radius: 0; background: transparent; }
+  .deliveryItems span { white-space: normal; line-height: 1.5; }
+  .driverChat { justify-content: stretch; margin-top: 14px; }
+  .driverChat > button { width: 100%; }
   .deliveryCardTop { grid-template-columns: 43px minmax(0, 1fr) auto; gap: 10px; }
   .deliveryCardTop > span { width: 43px; height: 43px; border-radius: 13px; }
   .deliveryItems { grid-template-columns: 16px minmax(0, 1fr); }

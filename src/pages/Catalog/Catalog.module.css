@@ -1143,11 +1143,20 @@
 }
 
 @media (max-width: 600px) {
-  .customerOrderList > article { padding: 18px 16px; }
-  .customerOrderTop { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; }
-  .customerOrderTop > span { width: 40px; height: 40px; }
+  .customerOrderList { gap: 16px; }
+  .customerOrderList > article { padding: 18px 16px; border-color: #ececea; border-radius: 14px; box-shadow: none; }
+  .customerOrderTop { grid-template-columns: 52px minmax(0, 1fr); gap: 12px; }
+  .customerOrderTop > span { width: 52px; height: 52px; border-radius: 10px; }
   .customerOrderTop > b { grid-column: 2; }
-  .customerOrderTop strong { font-size: 18px; }
-  .customerOrderStatus { flex-wrap: wrap; gap: 8px; }
+  .customerOrderTop strong { font-family: var(--font-body); font-size: 16px; font-weight: 600; }
+  .customerOrderTop p { color: #888; }
+  .customerOrderStatus { flex-wrap: wrap; gap: 8px; border-color: #f1f1ee; }
+  .customerOrderStatus span { font-size: 13px; font-weight: 600; }
+  .customerOrderStatus small { color: #888; }
+  .orderPeople { padding-top: 0; border: 0; }
+  .orderPeople > span:first-child { display: none; }
+  .orderPeople:not(:has(> span:nth-child(2))) { display: none; }
+  .orderProgress { height: 2px; }
+  .customerOrderActions { margin-top: 16px; }
   .customerOrderActions > button { width: 100%; }
 }
